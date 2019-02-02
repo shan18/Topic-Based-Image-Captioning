@@ -7,6 +7,7 @@ dataset/*
 !dataset/*.py
 *.h5
 *.pickle
+*.keras
 
 # Byte-compiled
 __pycache__/

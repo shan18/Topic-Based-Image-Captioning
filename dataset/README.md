@@ -1,0 +1,1 @@
+This directory contains the images and the annotations in the dataset.

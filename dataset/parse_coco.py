@@ -76,8 +76,32 @@ def map_category_id(category_map):
     return category_id, id_category
 
 
-def parse_data(image_categories, image_supercategories, image_captions, image_file):
-    images_data = {}
+def parse_data(images_data, dataset_type, root_dir):
+    # load instances
+    print('Loading instances...')
+    categories_file = json.load(open('{}/annotations/instances_{}2017.json'.format(root_dir, dataset_type), 'r'))
+    print('Done.')
+
+    # group categories by image
+    image_categories = get_categories(categories_file)
+
+    # group supercategories by image
+    cat_to_super = group_supercategories(categories_file['categories'])
+    image_supercategories = get_supercategories(image_categories, cat_to_super)
+
+    # load annotations
+    del categories_file  # free memory
+    print('Loading annotations...')
+    captions_file = json.load(open('{}/annotations/captions_{}2017.json'.format(root_dir, dataset_type), 'r'))
+    print('Done.')
+
+    # group captions by image
+    image_captions = get_captions(captions_file['annotations'])
+
+    # get filename of each image
+    image_file = get_filename(captions_file['images'])
+    del captions_file  # free memory
+
     for image in image_categories:
         images_data[image] = {
             'file_name': image_file[image],
@@ -115,33 +139,19 @@ if __name__ == '__main__':
     )
     args = parser.parse_args()
 
-    
-    # load annotations
-    print('Loading instances and annotations...')
-    captions_file = json.load(open('{}/annotations/captions_train2017.json'.format(root_dir), 'r'))
-    categories_file = json.load(open('{}/annotations/instances_train2017.json'.format(root_dir), 'r'))
-    print('Done.')
-
-    # group categories by image
-    image_categories = get_categories(categories_file)
-
-    # group supercategories by image
-    cat_to_super = group_supercategories(categories_file['categories'])
-    image_supercategories = get_supercategories(image_categories, cat_to_super)
-
-    # group captions by image
-    image_captions = get_captions(captions_file['annotations'])
-
-    # get filename of each image
-    image_file = get_filename(captions_file['images'])
-
     # get complete dataset
-    images_data = parse_data(image_categories, image_supercategories, image_captions, image_file)
+    images_data = {}
+    images_data = parse_data(images_data, 'train', args.root)
+    images_data = parse_data(images_data, 'val', args.root)
 
     # assign each category an id.
     # we are not using the default ids given in the dataset because
     # the id ranges are not continuous.
+    print('Mapping categories to IDs...')
+    categories_file = json.load(open('{}/annotations/instances_train2017.json'.format(args.root), 'r'))
     category_id, id_category = map_category_id(categories_file['categories'])
+    del categories_file  # free memory
+    print('Done.')
 
     # save parsed coco dataset
-    save_data(images_data, category_id, id_category, root_dir)
+    save_data(images_data, category_id, id_category, args.root)

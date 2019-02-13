@@ -64,19 +64,7 @@ def get_supercategories(image_categories, cat_to_super):
     return image_supercategories
 
 
-def map_category_id(category_map):
-    """ Assign an ID to each category """
-    category_id = {}
-    id_category = {}
-    counter = 0
-    for category in category_map:
-        category_id[category['name']] = counter
-        id_category[counter] = category['name']
-        counter += 1
-    return category_id, id_category
-
-
-def parse_data(images_data, dataset_type, root_dir):
+def parse_data(images_data, dataset_type, topic, root_dir):
     # load instances
     print('Loading instances...')
     categories_file = json.load(open('{}/annotations/instances_{}2017.json'.format(root_dir, dataset_type), 'r'))
@@ -103,13 +91,25 @@ def parse_data(images_data, dataset_type, root_dir):
     del captions_file  # free memory
 
     for image in image_categories:
-        images_data[image] = {
-            'file_name': image_file[image],
-            'supercategories': image_supercategories[image],
-            'categories': image_categories[image],
-            'captions': image_captions[image]
-        }
+        if topic in image_supercategories[image]:
+            images_data[image] = {
+                'file_name': image_file[image],
+                'categories': image_categories[image],
+                'captions': image_captions[image]
+            }
     return images_data
+
+
+def map_category_id(category_map):
+    """ Assign an ID to each category """
+    category_id = {}
+    id_category = {}
+    counter = 0
+    for category in category_map:
+        category_id[category['name']] = counter
+        id_category[counter] = category['name']
+        counter += 1
+    return category_id, id_category
 
 
 def save_data(images_data, category_id, id_category, root_dir):
@@ -137,12 +137,20 @@ if __name__ == '__main__':
         '--root', default=os.path.dirname(os.path.abspath(__file__)),
         help='Root directory containing the dataset folders'
     )
+    parser.add_argument(
+        '--topic', default='sports',
+        choices=[
+            'person', 'vehicle', 'outdoor', 'animal', 'accessory', 'sports',
+            'kitchen', 'food', 'furniture', 'electronic', 'appliance', 'indoor'
+        ],
+        help='Topic (supercategory) of the images'
+    )
     args = parser.parse_args()
 
     # get complete dataset
     images_data = {}
-    images_data = parse_data(images_data, 'train', args.root)
-    images_data = parse_data(images_data, 'val', args.root)
+    images_data = parse_data(images_data, 'train', args.topic, args.root)
+    images_data = parse_data(images_data, 'val', args.topic, args.root)
 
     # assign each category an id.
     # we are not using the default ids given in the dataset because

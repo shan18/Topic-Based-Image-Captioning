@@ -53,11 +53,7 @@ def cache(cache_path, fn, *args, **kwargs):
 
     # If the cache-file exists.
     if os.path.exists(cache_path):
-        # Load the cached data from the file.
-        with open(cache_path, mode='rb') as file:
-            obj = pickle.load(file)
-
-        print("- Data loaded from cache-file: " + cache_path)
+        print("Cache-file: " + cache_path + "already exists.")
     else:
         # The cache-file does not exist.
 

@@ -3,6 +3,7 @@ import random
 import pickle
 import argparse
 
+from cache import cache
 from utils import load_image, print_progress_bar
 
 
@@ -36,7 +37,6 @@ def load_coco(input_path, label, split_train, split_val):
         coco_raw = pickle.load(file)
     images_data = coco_raw['images_data']
     category_id = coco_raw['category_id']
-    id_category = coco_raw['id_category']
     
     # split dataset
     img_ids = list(images_data.keys())
@@ -58,7 +58,7 @@ def load_coco(input_path, label, split_train, split_val):
         val_data[1] = create_multi_label_categories_vector(val_data[1], category_id)
         test_data[1] = create_multi_label_categories_vector(test_data[1], category_id)
     
-    return train_data, val_data, test_data, category_id, id_category
+    return train_data, val_data, test_data, category_id
 
 
 def encode_images_list(filenames, root, image_size, grayscale):
@@ -123,12 +123,22 @@ def encode_categories(labels, label_type, root, dataset_type):
 
 
 def main(args):
-    train_data, val_data, test_data, category_id, id_category = load_coco(
+    train_data, val_data, test_data, category_id = load_coco(
         args.raw, args.label, args.split_train, args.split_val
     )
     filenames_train, labels_train = train_data
     filenames_val, labels_val = val_data
     filenames_test, labels_test = test_data
+
+    # load and store images
+    encode_images(filenames_train, args.root, args.image_size, args.grayscale, 'train')
+    encode_images(filenames_val, args.root, args.image_size, args.grayscale, 'val')
+    encode_images(filenames_test, args.root, args.image_size, args.grayscale, 'test')
+
+    # load and store categories
+    encode_categories(labels_train, args.label, args.root, 'train')
+    encode_categories(labels_val, args.label, args.root, 'val')
+    encode_categories(labels_test, args.label, args.root, 'test')
 
 
 if __name__ == '__main__':

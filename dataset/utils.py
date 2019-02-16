@@ -30,9 +30,9 @@ def load_image(path, size=None, grayscale=False):
 
 def print_progress_bar(iteration, total):
     percent = ("{0:.1f}").format(100 * (iteration / float(total)))
-    filled_length = int(100 * iteration // total)
-    bar = '█' * filled_length + '-' * (100 - filled_length)
-    print('\r |%s| %s%% ' % (bar, percent), end = '\r')
+    filled_length = int(50 * iteration // total)
+    bar = '█' * filled_length + '-' * (50 - filled_length)
+    print('\rProgress: |%s| %s%% Complete' % (bar, percent), end = '\r')
     # Print New Line on Complete
     if iteration == total: 
         print()

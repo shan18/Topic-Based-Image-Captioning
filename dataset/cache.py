@@ -66,8 +66,6 @@ def cache(cache_path, fn, *args, **kwargs):
 
         print("- Data saved to cache-file: " + cache_path)
 
-    return obj
-
 
 ########################################################################
 

@@ -1,26 +1,35 @@
 import os
+import random
+import pickle
 import argparse
 
 
 def load_images_data(img_ids, images_data, label):
-    img_filenames = []
-    img_categories = []
-    img_captions = []
+    filenames = []
+    categories = []
+    captions = []
     for img_id in img_ids:
-        img_filenames.append(images_data[img_id]['file_name'])
-        img_categories.append(images_data[img_id]['categories'])
-        img_captions.append(images_data[img_id]['captions'])
+        filenames.append(images_data[img_id]['file_name'])
+        categories.append(images_data[img_id]['categories'])
+        captions.append(images_data[img_id]['captions'])
     
     if label == 'categories':
-        return (img_filenames, img_categories)
-    return (img_filenames, img_captions)
+        return (filenames, categories)
+    return (filenames, captions)
+
+
+def encode_categories(categories_list, category_id):
+    categories_encoded = []
+    for categories in categories_list:
+        encode = [0] * len(category_id)
+        for category in categories:
+            encode[category_id[category]] = 1
+        categories_encoded.append(encode)
+    return categories_encoded
 
 
 def load_coco(input_path, label, split_train=0.8, split_val=0.19):
-    """ Load coco dataset
-        :params input_path: path to the parsed coco file
-        :params split: split between training and validation dataset
-    """
+    """ Load coco dataset """
     with open(input_path, 'rb') as file:
         coco_raw = pickle.load(file)
     images_data = coco_raw['images_data']
@@ -40,6 +49,12 @@ def load_coco(input_path, label, split_train=0.8, split_val=0.19):
     train_data = load_images_data(img_ids_train, images_data, label)  # training dataset
     val_data = load_images_data(img_ids_val, images_data, label)  # validation dataset
     test_data = load_images_data(img_ids_test, images_data, label)  # test dataset
+
+    if label == 'categories':
+        # encode categories
+        train_data[1] = encode_categories(train_data[1], category_id)
+        val_data[1] = encode_categories(val_data[1], category_id)
+        test_data[1] = encode_categories(test_data[1], category_id)
     
     return train_data, val_data, test_data, category_id, id_category
 

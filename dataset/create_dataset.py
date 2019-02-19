@@ -157,7 +157,7 @@ if __name__ == '__main__':
         '--raw', default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'coco_raw.pickle'),
         help='Path to the simplified raw coco file'
     )
-    parser.add_argument('--label', choices=['categories', 'captions'], help='Type of label vector to create')
+    parser.add_argument('--label', required=True, choices=['categories', 'captions'], help='Type of label vector to create')
     parser.add_argument('--split_train', default=0.8, help='Training data split')
     parser.add_argument('--split_val', default=0.19, help='Validation data split')
     parser.add_argument('--image_size', default=224, type=int, help='Image size to use in dataset')

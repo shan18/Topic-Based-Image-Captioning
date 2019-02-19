@@ -49,17 +49,17 @@ def load_coco(input_path, label, split_train, split_val):
     img_ids_test = img_ids[split_idx_train+split_idx_val:]
     
     # load dataset
-    train_data = load_images_data(img_ids_train, images_data, label)  # training dataset
-    val_data = load_images_data(img_ids_val, images_data, label)  # validation dataset
-    test_data = load_images_data(img_ids_test, images_data, label)  # test dataset
+    train_images, train_labels = load_images_data(img_ids_train, images_data, label)  # training dataset
+    val_images, val_labels = load_images_data(img_ids_val, images_data, label)  # validation dataset
+    test_images, test_labels = load_images_data(img_ids_test, images_data, label)  # test dataset
 
     if label == 'categories':
         # encode categories
-        train_data[1] = create_multi_label_categories_vector(train_data[1], category_id)
-        val_data[1] = create_multi_label_categories_vector(val_data[1], category_id)
-        test_data[1] = create_multi_label_categories_vector(test_data[1], category_id)
+        train_labels = create_multi_label_categories_vector(train_labels, category_id)
+        val_labels = create_multi_label_categories_vector(val_labels, category_id)
+        test_labels = create_multi_label_categories_vector(test_labels, category_id)
     
-    return train_data, val_data, test_data, category_id
+    return (train_images, train_labels), (val_images, val_labels), (test_images, test_labels), category_id
 
 
 def encode_images_list(filenames, root, image_size, grayscale):
@@ -97,7 +97,7 @@ def encode_images(filenames, root, image_size, grayscale, dataset_type):
     # otherwise process all images and save their encodings
     # to the cache-file so it can be reloaded quickly.
     if os.path.exists(cache_path):
-        print("Cache-file: " + cache_path + "already exists.")
+        print("Cache-file: " + cache_path + " already exists.")
     else:
         # The cache-file does not exist.
         images = encode_images_list(filenames, root, image_size, grayscale)
@@ -118,7 +118,7 @@ def encode_categories(labels, label_type, root, dataset_type):
 
     # If the cache-file exists.
     if os.path.exists(cache_path):
-        print("Cache-file: " + cache_path + "already exists.")
+        print("Cache-file: " + cache_path + " already exists.")
     else:
         # Save the data to a cache-file.
         h5f = h5py.File(cache_path, 'w')

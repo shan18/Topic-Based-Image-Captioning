@@ -2,9 +2,9 @@ import os
 import random
 import pickle
 import argparse
+import h5py
 import numpy as np
 
-from cache import cache
 from utils import load_image, print_progress_bar
 
 
@@ -91,34 +91,39 @@ def encode_images(filenames, root, image_size, grayscale, dataset_type):
     print('Processing {} images in {}-set ...'.format(len(filenames), dataset_type))
 
     # Path for the cache-file.
-    cache_path = os.path.join(root, '{}_images.pkl'.format(dataset_type))
+    cache_path = os.path.join(root, '{}_images.h5'.format(dataset_type))
 
     # If the cache-file already exists then skip,
     # otherwise process all images and save their encodings
     # to the cache-file so it can be reloaded quickly.
-    cache(
-        cache_path=cache_path,
-        fn=encode_images_list,
-        filenames=filenames,
-        root=root,
-        image_size=image_size,
-        grayscale=grayscale
-    )
+    if os.path.exists(cache_path):
+        print("Cache-file: " + cache_path + "already exists.")
+    else:
+        # The cache-file does not exist.
+        images = encode_images_list(filenames, root, image_size, grayscale)
+
+        # Save the data to a cache-file.
+        h5f = h5py.File(cache_path, 'w')
+        h5f.create_dataset('images', data=images)
+        h5f.close()
+
+        print("- Data saved to cache-file: " + cache_path)
 
 
 def encode_categories(labels, label_type, root, dataset_type):
     print('Processing {} image labels in {}-set ...'.format(len(labels), dataset_type))
 
     # Path for the cache-file.
-    cache_path = os.path.join(root, '{}_{}.pkl'.format(dataset_type, label_type))
+    cache_path = os.path.join(root, '{}_{}.h5'.format(dataset_type, label_type))
 
     # If the cache-file exists.
     if os.path.exists(cache_path):
         print("Cache-file: " + cache_path + "already exists.")
     else:
         # Save the data to a cache-file.
-        with open(cache_path, mode='wb') as file:
-            pickle.dump(labels, file)
+        h5f = h5py.File(cache_path, 'w')
+        h5f.create_dataset('labels', data=labels)
+        h5f.close()
 
         print("Data saved to cache-file: " + cache_path)
 

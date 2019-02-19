@@ -2,6 +2,7 @@ import os
 import random
 import pickle
 import argparse
+import numpy as np
 
 from cache import cache
 from utils import load_image, print_progress_bar

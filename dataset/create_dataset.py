@@ -91,7 +91,7 @@ def encode_images(filenames, root, image_size, grayscale, dataset_type):
     print('Processing {} images in {}-set ...'.format(len(filenames), dataset_type))
 
     # Path for the cache-file.
-    cache_path = os.path.join(root, '{}_images.h5'.format(dataset_type))
+    cache_path = os.path.join(root, 'processed_data/{}_images.h5'.format(dataset_type))
 
     # If the cache-file already exists then skip,
     # otherwise process all images and save their encodings
@@ -114,7 +114,7 @@ def encode_categories(labels, label_type, root, dataset_type):
     print('Processing {} image labels in {}-set ...'.format(len(labels), dataset_type))
 
     # Path for the cache-file.
-    cache_path = os.path.join(root, '{}_{}.h5'.format(dataset_type, label_type))
+    cache_path = os.path.join(root, 'processed_data/{}_{}.h5'.format(dataset_type, label_type))
 
     # If the cache-file exists.
     if os.path.exists(cache_path):

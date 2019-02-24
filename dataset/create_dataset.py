@@ -137,7 +137,7 @@ def main(args):
     filenames_test, labels_test = test_data
 
     # check if path to save data exists
-    save_path = os.path.join(args.root, 'processed_images')
+    save_path = os.path.join(args.root, 'processed_data')
     if not os.path.exists(save_path):
         print('Directory created:', save_path)
         os.mkdir(save_path)

@@ -31,7 +31,7 @@ def load_vggnet():
     return conv_model
 
 
-def create_model():
+def create_model(num_classes):
     # Load VGG19 model
     conv_model = load_vggnet()
 
@@ -61,7 +61,9 @@ def create_model():
     conv_model.trainable = False
     for layer in conv_model.layers:
         layer.trainable = False
-    
+
+    print(image_model.summary())
+
     # Compile the model
     optimizer = Adam(lr=1e-3)
     image_model.compile(
@@ -79,7 +81,7 @@ def train_model(model, train_data, val_data, args):
 
     # set weights directory and checkpoint path
     weights_dir = 'weights'
-    if os.path.exists(weights_dir):
+    if not os.path.exists(weights_dir):
         os.mkdir(weights_dir)
     path_checkpoint = os.path.join(weights_dir, 'checkpoint.keras')
 
@@ -127,7 +129,7 @@ def main(args):
     id_category = coco_raw['id_category']
 
     # Create model
-    model = create_model()
+    model = create_model(len(id_category))
 
     # Train model
     train_model(model, (train_images, train_categories), (val_images, val_categories), args)

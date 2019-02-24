@@ -165,7 +165,7 @@ if __name__ == '__main__':
     )
     parser.add_argument('--label', required=True, choices=['categories', 'captions'], help='Type of label vector to create')
     parser.add_argument('--split_train', default=0.8, help='Training data split')
-    parser.add_argument('--split_val', default=0.19, help='Validation data split')
+    parser.add_argument('--split_val', default=0.1, help='Validation data split')
     parser.add_argument('--image_size', default=224, type=int, help='Image size to use in dataset')
     parser.add_argument('--grayscale', action='store_true', help='Images will be stored in grayscale')
     args = parser.parse_args()

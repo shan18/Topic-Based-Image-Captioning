@@ -6,6 +6,7 @@ import numpy as np
 import tensorflow as tf
 
 from tensorflow.python.keras import backend as K
+from tensorflow.python.keras import regularizers
 from tensorflow.python.keras.models import Model, Sequential
 from tensorflow.python.keras.layers import Input, Dense, Flatten, Dropout
 from tensorflow.python.keras.applications import VGG19
@@ -48,7 +49,7 @@ def create_model(num_classes):
     # Add a dense (aka. fully-connected) layer.
     # This is for combining features that the VGG19 model has
     # recognized in the image.
-    image_model.add(Dense(1024, activation='relu'))
+    image_model.add(Dense(1024, activation='relu', kernel_regularizer=regularizers.l1(0.01)))
 
     # Add a dropout-layer which may prevent overfitting and
     # improve generalization ability to unseen data e.g. the test-set.
@@ -88,8 +89,8 @@ def train_model(model, train_data, val_data, args):
     # set model callbacks
     tb = TensorBoard(log_dir=os.path.join(weights_dir, 'tensorboard-logs'), histogram_freq=0, write_graph=False)
     checkpoint = ModelCheckpoint(filepath=path_checkpoint, verbose=1, save_weights_only=True)
-    early_stop = EarlyStopping(monitor='val_loss', patience=3, verbose=1)
-    callbacks = [tb, checkpoint, early_stop]
+    # early_stop = EarlyStopping(monitor='val_loss', patience=3, verbose=1)
+    callbacks = [tb, checkpoint]
 
     # train
     model.fit(

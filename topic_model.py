@@ -5,13 +5,14 @@ import h5py
 import numpy as np
 import tensorflow as tf
 
-from tensorflow.python.keras import backend as K
-from tensorflow.python.keras import regularizers
-from tensorflow.python.keras.models import Model, Sequential
-from tensorflow.python.keras.layers import Input, Dense, Flatten, Dropout
-from tensorflow.python.keras.applications import VGG19
-from tensorflow.python.keras.optimizers import Adam
-from tensorflow.python.keras.callbacks import ModelCheckpoint, TensorBoard, EarlyStopping
+from tensorflow.keras import backend as K
+from tensorflow.keras import regularizers
+from tensorflow.keras.models import Model, Sequential
+from tensorflow.keras.layers import Input, Dense, Flatten, Dropout
+from tensorflow.keras.applications import VGG19
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.callbacks import ModelCheckpoint, TensorBoard, EarlyStopping
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 
 def load_data(filename, data_dir, data_type):
@@ -76,6 +77,19 @@ def create_model(num_classes):
     return image_model
 
 
+def train_data_generator(x, y, args):
+    train_datagen = ImageDataGenerator(
+        rotation_range=args.rotation_range,
+        width_shift_range=args.shift_fraction,
+        height_shift_range=args.shift_fraction,
+        shear_range=args.shear_range
+    )
+    generator = train_datagen.flow(x, y, batch_size=args.batch_size)
+    while True:
+        x_batch, y_batch = generator.next()
+        yield (x_batch, y_batch)
+
+
 def train_model(model, train_data, val_data, args):
     train_images, train_categories = train_data
     val_images, val_categories = val_data
@@ -92,15 +106,24 @@ def train_model(model, train_data, val_data, args):
     # early_stop = EarlyStopping(monitor='val_loss', patience=3, verbose=1)
     callbacks = [tb, checkpoint]
 
-    # train
-    model.fit(
-        x=train_images,
-        y=train_categories,
-        batch_size=args.batch_size,
+    # train with data augmentation
+    model.fit_generator(
+        generator=train_data_generator(train_images, train_categories, args),
+        steps_per_epoch=int(train_categories.shape[0] / args.batch_size),
         epochs=args.epochs,
-        callbacks=callbacks,
-        validation_data=(val_images, val_categories)
+        validation_data=(val_images, val_categories),
+        callbacks=callbacks
     )
+
+    # train without data augmentation
+    # model.fit(
+    #     x=train_images,
+    #     y=train_categories,
+    #     batch_size=args.batch_size,
+    #     epochs=args.epochs,
+    #     callbacks=callbacks,
+    #     validation_data=(val_images, val_categories)
+    # )
 
     return model
 
@@ -153,6 +176,15 @@ if __name__ == '__main__':
     )
     parser.add_argument(
         '--epochs', default=100, type=int, help='Epochs'
+    )
+    parser.add_argument(
+        '--shift_fraction', default=0.2, type=float, help='Shift fraction for data augmentation'
+    )
+    parser.add_argument(
+        '--shear_range', default=0.2, type=float, help='Shear range for data augmentation'
+    )
+    parser.add_argument(
+        '--rotation_range', default=40, type=int, help='Rotation range for data augmentation'
     )
     args = parser.parse_args()
 

@@ -27,7 +27,7 @@ def load_vggnet():
     model = VGG19(include_top=True, weights='imagenet')
     
     # Extract the last layer from the last convolutional block
-    conv_layer = model.get_layer('block5_pool')
+    conv_layer = model.get_layer('fc2')
 
     conv_model = Model(inputs=model.input, outputs=conv_layer.output)
     return conv_model
@@ -42,19 +42,6 @@ def create_model(num_classes):
 
     # Add the convolutional part of the VGG19 model
     image_model.add(conv_model)
-
-    # Flatten the output of the VGG19 model because it is from a
-    # convolutional layer
-    image_model.add(Flatten())
-
-    # Add a dense (aka. fully-connected) layer.
-    # This is for combining features that the VGG19 model has
-    # recognized in the image.
-    image_model.add(Dense(1024, activation='relu', kernel_regularizer=regularizers.l1(0.01)))
-
-    # Add a dropout-layer which may prevent overfitting and
-    # improve generalization ability to unseen data e.g. the test-set.
-    # image_model.add(Dropout(0.5))
 
     # Add the final layer for the actual classification
     image_model.add(Dense(num_classes, activation='sigmoid'))
@@ -107,23 +94,23 @@ def train_model(model, train_data, val_data, args):
     callbacks = [tb, checkpoint]
 
     # train with data augmentation
-    model.fit_generator(
-        generator=train_data_generator(train_images, train_categories, args),
-        steps_per_epoch=int(train_categories.shape[0] / args.batch_size),
-        epochs=args.epochs,
-        validation_data=(val_images, val_categories),
-        callbacks=callbacks
-    )
+    # model.fit_generator(
+    #     generator=train_data_generator(train_images, train_categories, args),
+    #     steps_per_epoch=int(train_categories.shape[0] / args.batch_size),
+    #     epochs=args.epochs,
+    #     validation_data=(val_images, val_categories),
+    #     callbacks=callbacks
+    # )
 
     # train without data augmentation
-    # model.fit(
-    #     x=train_images,
-    #     y=train_categories,
-    #     batch_size=args.batch_size,
-    #     epochs=args.epochs,
-    #     callbacks=callbacks,
-    #     validation_data=(val_images, val_categories)
-    # )
+    model.fit(
+        x=train_images,
+        y=train_categories,
+        batch_size=args.batch_size,
+        epochs=args.epochs,
+        callbacks=callbacks,
+        validation_data=(val_images, val_categories)
+    )
 
     return model
 

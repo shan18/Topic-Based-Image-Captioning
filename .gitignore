@@ -5,6 +5,7 @@ resources
 dataset/*
 !dataset/README.md
 !dataset/*.py
+weights/
 *.h5
 *.pickle
 *.keras

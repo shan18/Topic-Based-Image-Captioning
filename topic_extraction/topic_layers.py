@@ -4,7 +4,7 @@ from tensorflow.keras.applications import VGG19
 from tensorflow.keras.optimizers import Adam
 
 
-def load_vgg19():
+def load_feature_model():
     """ Download VGG19 model and extract the second last fully connected layer
     """
     model = VGG19(include_top=True, weights='imagenet')
@@ -16,7 +16,7 @@ def load_vgg19():
 def create_topic_model(num_classes):
     """ Use pre-trained vgg19 model and add a custom classification layer """
 
-    conv_model = load_vgg19()  # Load VGG19 model
+    conv_model = load_feature_model()  # Load VGG19 model
     image_model = Sequential()  # Start a new Keras Sequential model
     image_model.add(conv_model)  # Add VGG19 model
     image_model.add(Dense(num_classes, activation='sigmoid'))  # Add the final classification layer

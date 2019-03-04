@@ -2,12 +2,13 @@ import os
 import argparse
 import pickle
 import h5py
+import numpy as np
 
 from tensorflow.keras import backend as K
 from tensorflow.keras.callbacks import ModelCheckpoint, TensorBoard, EarlyStopping
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
-from topic_layers import create_topic_model
+from .topic_layers import create_topic_model
 
 
 def load_data(filename, data_dir, data_type):
@@ -107,6 +108,7 @@ def main(args):
 
     # Create model
     model = create_topic_model(len(id_category))
+    print(model.summary())
 
     # Train model
     train_model(model, (train_images, train_categories), (val_images, val_categories), args)

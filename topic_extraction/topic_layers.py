@@ -16,7 +16,7 @@ def load_vgg19():
 def create_topic_model(num_classes):
     """ Use pre-trained vgg19 model and add a custom classification layer """
 
-    conv_model = load_vggnet()  # Load VGG19 model
+    conv_model = load_vgg19()  # Load VGG19 model
     image_model = Sequential()  # Start a new Keras Sequential model
     image_model.add(conv_model)  # Add VGG19 model
     image_model.add(Dense(num_classes, activation='sigmoid'))  # Add the final classification layer
@@ -25,8 +25,6 @@ def create_topic_model(num_classes):
     conv_model.trainable = False
     for layer in conv_model.layers:
         layer.trainable = False
-
-    print(image_model.summary())
 
     # Compile the model
     optimizer = Adam(lr=1e-3)

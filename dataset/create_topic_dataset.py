@@ -18,7 +18,7 @@ def create_multi_label_categories_vector(categories_list, category_id):
 
 def load_split_data(input_path, split_train, split_val):
     """ Load coco dataset """
-    train_data, val_data, test_data, category_id = load_coco(input_path, 'categories', split_train, split_val)
+    train_data, val_data, test_data, category_id, id_category = load_coco(input_path, 'categories', split_train, split_val)
     train_images, train_labels = train_data
     val_images, val_labels = val_data
     test_images, test_labels = test_data

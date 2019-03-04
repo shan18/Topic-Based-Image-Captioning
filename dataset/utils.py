@@ -18,12 +18,13 @@ def load_images_data(img_ids, images_data, label):
     return (filenames, captions)
 
 
-def load_coco(input_path, label, split_train, split_val):
+def load_coco(input_path, label, split_train=0.8, split_val=0.1):
     """ Load coco dataset """
     with open(input_path, 'rb') as file:
         coco_raw = pickle.load(file)
     images_data = coco_raw['images_data']
     category_id = coco_raw['category_id']
+    id_category = coco_raw['id_category']
     
     # split dataset
     img_ids = list(images_data.keys())
@@ -39,7 +40,7 @@ def load_coco(input_path, label, split_train, split_val):
     val_images, val_labels = load_images_data(img_ids_val, images_data, label)  # validation dataset
     test_images, test_labels = load_images_data(img_ids_test, images_data, label)  # test dataset
     
-    return (train_images, train_labels), (val_images, val_labels), (test_images, test_labels), category_id
+    return (train_images, train_labels), (val_images, val_labels), (test_images, test_labels), category_id, id_category
 
 
 def load_image(path, size=None, grayscale=False):

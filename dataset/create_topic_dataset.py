@@ -1,25 +1,9 @@
 import os
-import random
-import pickle
 import argparse
 import h5py
 import numpy as np
 
-from utils import load_image, print_progress_bar
-
-
-def load_images_data(img_ids, images_data, label):
-    filenames = []
-    categories = []
-    captions = []
-    for img_id in img_ids:
-        filenames.append(images_data[img_id]['file_name'])
-        categories.append(images_data[img_id]['categories'])
-        captions.append(images_data[img_id]['captions'])
-    
-    if label == 'categories':
-        return (filenames, categories)
-    return (filenames, captions)
+from utils import load_coco, load_image, print_progress_bar
 
 
 def create_multi_label_categories_vector(categories_list, category_id):
@@ -32,32 +16,16 @@ def create_multi_label_categories_vector(categories_list, category_id):
     return categories_encoded
 
 
-def load_coco(input_path, label, split_train, split_val):
+def load_split_data(input_path, split_train, split_val):
     """ Load coco dataset """
-    with open(input_path, 'rb') as file:
-        coco_raw = pickle.load(file)
-    images_data = coco_raw['images_data']
-    category_id = coco_raw['category_id']
-    
-    # split dataset
-    img_ids = list(images_data.keys())
-    split_idx_train = int(len(img_ids) * split_train)
-    split_idx_val = int(len(img_ids) * split_val)
-    random.shuffle(img_ids)
-    img_ids_train = img_ids[:split_idx_train]
-    img_ids_val = img_ids[split_idx_train:split_idx_train+split_idx_val]
-    img_ids_test = img_ids[split_idx_train+split_idx_val:]
-    
-    # load dataset
-    train_images, train_labels = load_images_data(img_ids_train, images_data, label)  # training dataset
-    val_images, val_labels = load_images_data(img_ids_val, images_data, label)  # validation dataset
-    test_images, test_labels = load_images_data(img_ids_test, images_data, label)  # test dataset
+    train_data, val_data, test_data, category_id = load_coco(input_path, 'categories', split_train, split_val)
+    train_images, train_labels = train_data
+    val_images, val_labels = val_data
+    test_images, test_labels = test_data
 
-    if label == 'categories':
-        # encode categories
-        train_labels = create_multi_label_categories_vector(train_labels, category_id)
-        val_labels = create_multi_label_categories_vector(val_labels, category_id)
-        test_labels = create_multi_label_categories_vector(test_labels, category_id)
+    train_labels = create_multi_label_categories_vector(train_labels, category_id)
+    val_labels = create_multi_label_categories_vector(val_labels, category_id)
+    test_labels = create_multi_label_categories_vector(test_labels, category_id)
     
     return (train_images, train_labels), (val_images, val_labels), (test_images, test_labels), category_id
 
@@ -91,7 +59,7 @@ def encode_images(filenames, root, image_size, grayscale, dataset_type):
     print('Processing {} images in {}-set ...'.format(len(filenames), dataset_type))
 
     # Path for the cache-file.
-    cache_path = os.path.join(root, 'processed_data/{}_images.h5'.format(dataset_type))
+    cache_path = os.path.join(root, 'processed_topic_data/{}_images.h5'.format(dataset_type))
 
     # If the cache-file already exists then skip,
     # otherwise process all images and save their encodings
@@ -110,11 +78,11 @@ def encode_images(filenames, root, image_size, grayscale, dataset_type):
         print("- Data saved to cache-file: " + cache_path)
 
 
-def encode_categories(labels, label_type, root, dataset_type):
+def encode_categories(labels, root, dataset_type):
     print('Processing {} image labels in {}-set ...'.format(len(labels), dataset_type))
 
     # Path for the cache-file.
-    cache_path = os.path.join(root, 'processed_data/{}_{}.h5'.format(dataset_type, label_type))
+    cache_path = os.path.join(root, 'processed_topic_data/{}_categories.h5'.format(dataset_type))
 
     # If the cache-file exists.
     if os.path.exists(cache_path):
@@ -129,15 +97,15 @@ def encode_categories(labels, label_type, root, dataset_type):
 
 
 def main(args):
-    train_data, val_data, test_data, category_id = load_coco(
-        args.raw, args.label, args.split_train, args.split_val
+    train_data, val_data, test_data, category_id = load_split_data(
+        args.raw, args.split_train, args.split_val
     )
     filenames_train, labels_train = train_data
     filenames_val, labels_val = val_data
     filenames_test, labels_test = test_data
 
     # check if path to save data exists
-    save_path = os.path.join(args.root, 'processed_data')
+    save_path = os.path.join(args.root, 'processed_topic_data')
     if not os.path.exists(save_path):
         print('Directory created:', save_path)
         os.mkdir(save_path)
@@ -148,9 +116,9 @@ def main(args):
     encode_images(filenames_test, args.root, args.image_size, args.grayscale, 'test')
 
     # load and store categories
-    encode_categories(labels_train, args.label, args.root, 'train')
-    encode_categories(labels_val, args.label, args.root, 'val')
-    encode_categories(labels_test, args.label, args.root, 'test')
+    encode_categories(labels_train, args.root, 'train')
+    encode_categories(labels_val, args.root, 'val')
+    encode_categories(labels_test, args.root, 'test')
 
 
 if __name__ == '__main__':
@@ -163,7 +131,6 @@ if __name__ == '__main__':
         '--raw', default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'coco_raw.pickle'),
         help='Path to the simplified raw coco file'
     )
-    parser.add_argument('--label', required=True, choices=['categories', 'captions'], help='Type of label vector to create')
     parser.add_argument('--split_train', default=0.8, help='Training data split')
     parser.add_argument('--split_val', default=0.1, help='Validation data split')
     parser.add_argument('--image_size', default=224, type=int, help='Image size to use in dataset')

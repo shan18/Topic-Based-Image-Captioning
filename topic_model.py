@@ -33,7 +33,7 @@ def load_vggnet():
     return conv_model
 
 
-def create_model(num_classes):
+def load_topic_model(num_classes):
     # Load VGG19 model
     conv_model = load_vggnet()
 
@@ -140,7 +140,7 @@ def main(args):
     id_category = coco_raw['id_category']
 
     # Create model
-    model = create_model(len(id_category))
+    model = load_topic_model(len(id_category))
 
     # Train model
     train_model(model, (train_images, train_categories), (val_images, val_categories), args)

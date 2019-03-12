@@ -159,7 +159,7 @@ def process_data(topic_model, feature_model, data_dir, data_type, filenames, cap
     return topic_obj, feature_obj, captions
 
 
-def mark_captions(captions_list):
+def mark_captions(captions_list, mark_start, mark_end):
     """ Mark all the captions with the start and the end marker """
     captions_marked = [
         [mark_start + caption + mark_end for caption in captions] for captions in captions_list
@@ -185,7 +185,7 @@ def create_tokenizer(captions_marked):
     return tokenizer, vocab_size
 
 
-def create_sequences(tokenizer, max_length, topic_transfer_value, feature_transfer_value, caption):
+def create_sequences(tokenizer, max_length, topic_transfer_value, feature_transfer_value, caption, vocab_size):
     """ Create sequences of topic_values, feature_values, input sequence and output sequence for an image """
     topic_values, feature_values = [], []
     input_captions, output_captions = [], []
@@ -233,7 +233,8 @@ def batch_generator(topic_transfer_values, feature_transfer_values, captions_lis
                 max_length,
                 topic_transfer_values[idx],
                 feature_transfer_values[idx],
-                np.random.choice(captions_list[idx])
+                np.random.choice(captions_list[idx]),
+                vocab_size
             )
             topic_values.extend(topic_value)
             feature_values.extend(feature_value)
@@ -305,7 +306,7 @@ def create_embedding_layer(word_to_index, word_to_vec_map, num_words):
     return decoder_embedding
 
 
-def create_model(topic_model, feature_model):
+def create_model(topic_model, feature_model, tokenizer, word_to_vec_map, vocab_size):
     state_size = 256
 
     # Encode Images
@@ -399,13 +400,13 @@ def main(args):
     process_batch_size = 64
 
     topic_transfer_values_train, feature_transfer_values_train, captions_train = process_data(
-        topic_model, feature_model, data_dir, 'train', train_images, train_captions, process_batch_size
+        topic_model, feature_model, 'dataset', 'train', train_images, train_captions, process_batch_size
     )
     print("topic shape:", topic_transfer_values_train.shape)
     print("feature shape:", feature_transfer_values_train.shape)
 
     topic_transfer_values_val, feature_transfer_values_val, captions_val = process_data(
-        topic_model, feature_model, data_dir, 'val', val_images, val_captions, process_batch_size
+        topic_model, feature_model, 'dataset', 'val', val_images, val_captions, process_batch_size
     )
     print("topic shape:", topic_transfer_values_val.shape)
     print("feature shape:", feature_transfer_values_val.shape)
@@ -413,7 +414,7 @@ def main(args):
     # process captions
     mark_start = 'startseq '
     mark_end = ' endseq'
-    captions_train_marked = mark_captions(captions_train)
+    captions_train_marked = mark_captions(captions_train, mark_start, mark_end)
     tokenizer, vocab_size = create_tokenizer(captions_train_marked)
 
     # generator
@@ -435,7 +436,7 @@ def main(args):
     word_to_vec_map[mark_end.strip()] = np.random.uniform(low=-1.0, high=1.0, size=size)
 
     # model
-    model = create_model(topic_model, feature_model)
+    model = create_model(topic_model, feature_model, tokenizer, word_to_vec_map, vocab_size)
     train(model, generator_train, len(train_images), captions_train, args)
 
 

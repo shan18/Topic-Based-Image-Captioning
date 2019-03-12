@@ -8,7 +8,7 @@ from tensorflow.keras import backend as K
 from tensorflow.keras.callbacks import ModelCheckpoint, TensorBoard, EarlyStopping
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
-from .topic_layers import create_topic_model
+from topic_layers import create_topic_model
 
 
 def load_data(filename, data_dir, data_type):
@@ -118,12 +118,12 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '--data',
-        default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dataset', 'processed_data'),
+        default=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'dataset', 'processed_topic_data'),
         help='Directory containing the processed dataset'
     )
     parser.add_argument(
         '--raw',
-        default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dataset', 'coco_raw.pickle'),
+        default=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'dataset', 'coco_raw.pickle'),
         help='Path to the simplified raw coco file'
     )
     parser.add_argument('--batch_size', default=64, type=int, help='Batch Size')

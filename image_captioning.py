@@ -351,7 +351,20 @@ def create_model(topic_model, feature_model):
     return model
 
 
-def train(model, generator, num_images, args):
+def calculate_steps_per_epoch(captions_list, batch_size):
+    # Number of captions for each image in the dataset
+    num_captions = [len(captions) for captions in captions_list]
+
+    # Total number of captions in the training-set
+    total_num_captions = np.sum(num_captions)
+
+    # Approximate number of batches required per epoch,
+    # if we want to process each caption and image pair once per epoch
+    steps_per_epoch = int(total_num_captions / batch_size)
+    return steps_per_epoch
+
+
+def train(model, generator, num_images, captions_list, args):
     # define callbacks
     path_checkpoint = 'weights/checkpoint.keras'
     callback_checkpoint = ModelCheckpoint(
@@ -369,7 +382,7 @@ def train(model, generator, num_images, args):
     # train model
     model.fit_generator(
         generator=generator,
-        steps_per_epoch=int(num_images / args.batch_size),
+        steps_per_epoch=calculate_steps_per_epoch(captions_list, args.batch_size),
         epochs=args.epochs,
         callbacks=callbacks
     )
@@ -423,7 +436,7 @@ def main(args):
 
     # model
     model = create_model(topic_model, feature_model)
-    train(model, generator_train, len(train_images), args)
+    train(model, generator_train, len(train_images), captions_train, args)
 
 
 if __name__ == '__main__':

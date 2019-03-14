@@ -18,7 +18,7 @@ from image_model.topic_layers import load_topic_model, load_feature_model
 
 def get_raw_data(args):
     train_data, val_data, test_data, category_id, id_category = load_coco(
-        args.raw, 'captions', args.split_train, args.split_val
+        args.raw, 'captions'
     )
     return len(train_data[0]), len(id_category)
 

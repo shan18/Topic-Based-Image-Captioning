@@ -8,7 +8,13 @@
    `$ python dataset/parse_coco.py --topic topic_name`
 4. Process the dataset to train the topic model  
    `$ python dataset/create_topic_dataset.py`
+5. Process the dataset to train the caption model  
+   `$ python dataset/create_caption_dataset.py`
 
 ## Training Image Model
 
 `$ python topic_extraction/topic_network.py`
+
+## Training Caption Model
+
+`$ python image_captioning.py`

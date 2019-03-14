@@ -13,7 +13,7 @@ from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 
 from dataset.utils import load_coco, load_image, print_progress_bar
-from topic_extraction.topic_layers import load_topic_model, load_feature_model
+from image_model.topic_layers import load_topic_model, load_feature_model
 
 
 def load_raw_data(coco_raw_path):

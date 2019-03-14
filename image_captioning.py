@@ -16,6 +16,13 @@ from dataset.utils import load_coco
 from image_model.topic_layers import load_topic_model, load_feature_model
 
 
+def get_raw_data(args):
+    train_data, val_data, test_data, category_id, id_category = load_coco(
+        args.raw, 'captions', args.split_train, args.split_val
+    )
+    return len(train_data[0]), len(id_category)
+
+
 def load_data(data_type, args):
     # Path for the cache-file.
     topic_cache_path = os.path.join(
@@ -42,14 +49,8 @@ def load_data(data_type, args):
     return topic_obj, feature_obj, captions
 
 
-def load_pre_trained_model(args):
-    print('Loading pre-trained models...')
-    train_data, val_data, test_data, category_id, id_category = load_coco(
-        args.raw, 'captions', args.split_train, args.split_val
-    )
-    num_classes = len(id_category)
-
-    topic_model = load_topic_model(num_classes, args.image_weights)
+def load_pre_trained_model(weights_path, num_classes):
+    topic_model = load_topic_model(num_classes, weights_path)
     feature_model = load_feature_model()
     print('Done.\n')
     return topic_model, feature_model
@@ -288,16 +289,18 @@ def train(model, generator, num_images, captions_list, args):
 
 
 def main(args):
+    num_images_train, num_classes = get_raw_data(args)
+
     # Load pre-trained image models
-    topic_model, feature_model = load_pre_trained_model()
+    topic_model, feature_model = load_pre_trained_model(args.image_weights, num_classes)
 
     # load dataset
     topic_transfer_values_train, feature_transfer_values_train, captions_train = load_data(
         'train', args
     )
-    topic_transfer_values_val, feature_transfer_values_val, captions_val = load_data(
-        'val', args
-    )
+    # topic_transfer_values_val, feature_transfer_values_val, captions_val = load_data(
+    #     'val', args
+    # )
     print("topic shape:", topic_transfer_values_train.shape)
     print("feature shape:", feature_transfer_values_train.shape)
 
@@ -313,7 +316,7 @@ def main(args):
         feature_transfer_values_train,
         captions_train_marked,
         tokenizer,
-        len(train_images),
+        num_images_train,
         args.batch_size,
         args.max_tokens,
         vocab_size
@@ -327,7 +330,7 @@ def main(args):
 
     # model
     model = create_model(topic_model, feature_model, tokenizer, word_to_vec_map, vocab_size)
-    train(model, generator_train, len(train_images), captions_train, args)
+    train(model, generator_train, num_images_train, captions_train, args)
 
 
 if __name__ == '__main__':

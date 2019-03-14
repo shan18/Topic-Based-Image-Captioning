@@ -3,6 +3,7 @@ import sys
 import argparse
 import pickle
 import numpy as np
+from tensorflow.keras import backend as K
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -115,9 +116,9 @@ def main(args):
     train_data, val_data, test_data, category_id, id_category = load_coco(
         args.raw, 'captions', args.split_train, args.split_val
     )
-    filenames_train, labels_train = train_data  # Load training data
-    filenames_val, labels_val = val_data  # Load validation data
-    filenames_test, labels_test = test_data  # Load test data
+    train_images, train_captions = train_data  # Load training data
+    val_images, val_captions = val_data  # Load validation data
+    # filenames_test, labels_test = test_data  # Load test data
 
     num_classes = len(id_category)
     

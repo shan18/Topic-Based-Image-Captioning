@@ -1,8 +1,8 @@
 import os
+import sys
 import argparse
 import pickle
 import numpy as np
-import matplotlib.pyplot as plt
 
 from tensorflow.keras import backend as K
 from tensorflow.keras.models import Model
@@ -12,130 +12,22 @@ from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 
-from dataset.utils import load_coco, load_image, print_progress_bar
+from dataset.utils import load_coco
 from image_model.topic_layers import load_topic_model, load_feature_model
 
 
-def load_raw_data(coco_raw_path):
-    train_data, val_data, test_data, category_id, id_category = load_coco(
-        coco_raw_path, 'captions', 
-    )
-    num_classes = len(id_category)
-    return train_data, val_data, test_data, category_id, id_category, num_classes
-
-
-def load_pre_trained_model(weights_path, num_classes):
-    topic_model = load_topic_model(num_classes, weights_path)
-    feature_model = load_feature_model()
-    return topic_model, feature_model
-
-
-def process_images(topic_model, feature_model, data_dir, filenames, batch_size):
-    """
-    Process all the given files in the given data_dir using the
-    pre-trained topic-model as well as the feature-model and return
-    their transfer-values.
-    
-    The images are processed in batches to save
-    memory and improve efficiency.
-    """
-    
-    # Number of images to process.
-    num_images = len(filenames)
-    
-    # Get the expected input size of the pre-trained network
-    img_size = K.int_shape(topic_model.input)[1:3]
-
-    # Pre-allocate input-batch-array for images.
-    shape = (batch_size,) + img_size + (3,)
-    image_batch = np.zeros(shape=shape, dtype=np.float32)
-
-    # Pre-allocate output-array for transfer-values.
-    topic_transfer_values = np.zeros(
-        shape=(num_images,) + K.int_shape(topic_model.output)[1:],
-        dtype=np.int
-    )
-    feature_transfer_values = np.zeros(
-        shape=(num_images, K.int_shape(feature_model.output)[1]),
-        dtype=np.float32
-    )
-
-    # Initialize index into the filenames.
-    start_index = 0
-
-    # Process batches of image-files.
-    while start_index < num_images:
-        # Print the percentage-progress.
-        print_progress_bar(start_index, num_images)
-
-        # End-index for this batch.
-        end_index = start_index + batch_size
-
-        # Ensure end-index is within bounds.
-        if end_index > num_images:
-            end_index = num_images
-
-        # The last batch may have a different batch-size.
-        current_batch_size = end_index - start_index
-
-        # Load all the images in the batch.
-        for i, filename in enumerate(filenames[start_index:end_index]):
-            # Path for the image-file.
-            path = os.path.join(data_dir, filename)
-            
-            # Load and resize the image.
-            # This returns the image as a numpy-array.
-            img = load_image(path, size=img_size)
-
-            # Save the image for later use.
-            image_batch[i] = img
-
-        # Use the pre-trained models to process the image.
-        topic_predictions = topic_model.predict(
-            image_batch[0:current_batch_size]
-        )
-        topic_transfer_values_batch = (topic_predictions > 0.5).astype('int')
-        
-        feature_transfer_values_batch = feature_model.predict(
-            image_batch[0:current_batch_size]
-        )
-
-        # Save the transfer-values in the pre-allocated arrays.
-        topic_transfer_values[start_index:end_index] = topic_transfer_values_batch[0:current_batch_size]
-        feature_transfer_values[start_index:end_index] = feature_transfer_values_batch[0:current_batch_size]
-
-        # Increase the index for the next loop-iteration.
-        start_index = end_index
-
-    # Print newline.
-    print()
-
-    return topic_transfer_values, feature_transfer_values
-
-
-def process_data(topic_model, feature_model, data_dir, data_type, filenames, captions, batch_size):
-    print('Processing {0} images in training-set ...'.format(len(filenames)))
-
+def load_data(data_type, args):
     # Path for the cache-file.
-    cache_path_dir = os.path.join(data_dir, 'processed_caption_data')
     topic_cache_path = os.path.join(
-        cache_path_dir, 'topic_transfer_values_{}.pkl'.format(data_type)
+        args.data, 'topic_transfer_values_{}.pkl'.format(data_type)
     )
     feature_cache_path = os.path.join(
-        cache_path_dir, 'feature_transfer_values_{}.pkl'.format(data_type)
+        args.data, 'feature_transfer_values_{}.pkl'.format(data_type)
     )
     captions_cache_path = os.path.join(
-        cache_path_dir, 'captions_{}.pkl'.format(data_type)
+        args.data, 'captions_{}.pkl'.format(data_type)
     )
-    
-    # Check if directory to store processed data exists
-    if not os.path.exists(cache_path_dir):
-        print('Directory created:', cache_path_dir)
-        os.mkdir(cache_path_dir)
 
-    # If the cache-file already exists then reload it,
-    # otherwise process all images and save their transfer-values
-    # to the cache-file so it can be reloaded quickly.
     if os.path.exists(topic_cache_path) and os.path.exists(feature_cache_path) and os.path.exists(captions_cache_path):
         with open(topic_cache_path, mode='rb') as file:
             topic_obj = pickle.load(file)
@@ -145,18 +37,22 @@ def process_data(topic_model, feature_model, data_dir, data_type, filenames, cap
             captions = pickle.load(file)
         print("Data loaded from cache-file.")
     else:
-        topic_obj, feature_obj = process_images(
-            topic_model, feature_model, data_dir, filenames, batch_size
-        )
-        with open(topic_cache_path, mode='wb') as file:
-            pickle.dump(topic_obj, file)
-        with open(feature_cache_path, mode='wb') as file:
-            pickle.dump(feature_obj, file)
-        with open(captions_cache_path, mode='wb') as file:
-            pickle.dump(captions, file)
-        print("Data saved to cache-file.")
+        sys.exit('File containing the processed data does not exist.')
 
     return topic_obj, feature_obj, captions
+
+
+def load_pre_trained_model(args):
+    print('Loading pre-trained models...')
+    train_data, val_data, test_data, category_id, id_category = load_coco(
+        args.raw, 'captions', args.split_train, args.split_val
+    )
+    num_classes = len(id_category)
+
+    topic_model = load_topic_model(num_classes, args.image_weights)
+    feature_model = load_feature_model()
+    print('Done.\n')
+    return topic_model, feature_model
 
 
 def mark_captions(captions_list, mark_start, mark_end):
@@ -388,28 +284,22 @@ def train(model, generator, num_images, captions_list, args):
         callbacks=callbacks
     )
 
+    print('\n\nModel training finished.')
+
 
 def main(args):
-    train_data, val_data, test_data, category_id, id_category, num_classes = load_raw_data(args.raw)
-    train_images, train_captions = train_data  # Load training data
-    val_images, val_captions = val_data  # Load validation data
-    test_images, test_captions = test_data  # Load test data
+    # Load pre-trained image models
+    topic_model, feature_model = load_pre_trained_model()
 
-    topic_model, feature_model = load_pre_trained_model(args.topic_weights, num_classes)
-
-    process_batch_size = 64
-
-    topic_transfer_values_train, feature_transfer_values_train, captions_train = process_data(
-        topic_model, feature_model, 'dataset', 'train', train_images, train_captions, process_batch_size
+    # load dataset
+    topic_transfer_values_train, feature_transfer_values_train, captions_train = load_data(
+        'train', args
+    )
+    topic_transfer_values_val, feature_transfer_values_val, captions_val = load_data(
+        'val', args
     )
     print("topic shape:", topic_transfer_values_train.shape)
     print("feature shape:", feature_transfer_values_train.shape)
-
-    topic_transfer_values_val, feature_transfer_values_val, captions_val = process_data(
-        topic_model, feature_model, 'dataset', 'val', val_images, val_captions, process_batch_size
-    )
-    print("topic shape:", topic_transfer_values_val.shape)
-    print("feature shape:", feature_transfer_values_val.shape)
 
     # process captions
     mark_start = 'startseq '
@@ -452,12 +342,12 @@ if __name__ == '__main__':
         default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dataset', 'coco_raw.pickle'),
         help='Path to the simplified raw coco file'
     )
-    parser.add_argument('--batch_size', default=6, type=int, help='Number of images per batch')
+    parser.add_argument('--batch_size', default=10, type=int, help='Number of images per batch')
     parser.add_argument('--epochs', default=30, type=int, help='Epochs')
     parser.add_argument('--checkpoint', default='checkpoint', help='Filename to store model weights')
     parser.add_argument(
-        '--topic_weights',
-        default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'topic_extraction', 'weights', 'checkpoint.keras'),
+        '--image_weights',
+        default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'image_model', 'weights', 'checkpoint.keras'),
         help='Path to weights of the topic model'
     )
     parser.add_argument('--max_tokens', default=16, type=int, help='Max length of the captions')

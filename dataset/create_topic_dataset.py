@@ -18,7 +18,9 @@ def create_multi_label_categories_vector(categories_list, category_id):
 
 def load_split_data(input_path, split_train, split_val):
     """ Load coco dataset """
-    train_data, val_data, test_data, category_id, id_category = load_coco(input_path, 'categories', split_train, split_val)
+    train_data, val_data, test_data, category_id, id_category = load_coco(
+        input_path, 'categories', split_train, split_val
+    )
     train_images, train_labels = train_data
     val_images, val_labels = val_data
     test_images, test_labels = test_data
@@ -107,8 +109,8 @@ def main(args):
     # check if path to save data exists
     save_path = os.path.join(args.root, 'processed_topic_data')
     if not os.path.exists(save_path):
-        print('Directory created:', save_path)
         os.mkdir(save_path)
+        print('Directory created:', save_path)
 
     # load and store images
     encode_images(filenames_train, args.root, args.image_size, args.grayscale, 'train')
@@ -122,7 +124,7 @@ def main(args):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Create dataset')
+    parser = argparse.ArgumentParser(description='Create dataset for image model')
     parser.add_argument(
         '--root', default=os.path.dirname(os.path.abspath(__file__)),
         help='Root directory containing the dataset folders'

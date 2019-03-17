@@ -7,7 +7,7 @@ import numpy as np
 from tensorflow.keras import backend as K
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, Dense, LSTM, Embedding, Add, Reshape
-from tensorflow.keras.callbacks import ModelCheckpoint, TensorBoard
+from tensorflow.keras.callbacks import ModelCheckpoint, TensorBoard, EarlyStopping
 from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
@@ -17,10 +17,10 @@ from image_model.topic_layers import load_topic_model, load_feature_model
 
 
 def get_raw_data(args):
-    train_data, _, _, _, id_category = load_coco(
+    train_data, val_data, _, _, id_category = load_coco(
         args.raw, 'captions'
     )
-    return len(train_data[0]), len(id_category)
+    return len(train_data[0]), len(val_data[0]), len(id_category)
 
 
 def load_data(data_type, args):
@@ -31,9 +31,6 @@ def load_data(data_type, args):
     feature_cache_path = os.path.join(
         args.data, 'feature_transfer_values_{}.pkl'.format(data_type)
     )
-    images_cache_path = os.path.join(
-        cache_path_dir, 'images_{}.pkl'.format(data_type)
-    )
     captions_cache_path = os.path.join(
         args.data, 'captions_{}.pkl'.format(data_type)
     )
@@ -41,22 +38,19 @@ def load_data(data_type, args):
 
     topic_path_exists = os.path.exists(topic_cache_path)
     feature_path_exists = os.path.exists(feature_cache_path)
-    image_path_exists = os.path.exists(images_cache_path)
     caption_path_exists = os.path.exists(captions_cache_path)
-    if topic_path_exists and feature_path_exists and image_path_exists and caption_path_exists:
+    if topic_path_exists and feature_path_exists and caption_path_exists:
         with open(topic_cache_path, mode='rb') as file:
             topic_obj = pickle.load(file)
         with open(feature_cache_path, mode='rb') as file:
             feature_obj = pickle.load(file)
-        with open(images_cache_path, mode='rb') as file:
-            images = pickle.load(file)
         with open(captions_cache_path, mode='rb') as file:
             captions = pickle.load(file)
         print("Data loaded from cache-file.")
     else:
         sys.exit('File containing the processed data does not exist.')
 
-    return topic_obj, feature_obj, images, captions
+    return topic_obj, feature_obj, captions
 
 
 def load_pre_trained_model(weights_path, num_classes):
@@ -69,7 +63,7 @@ def load_pre_trained_model(weights_path, num_classes):
 def mark_captions(captions_list, mark_start, mark_end):
     """ Mark all the captions with the start and the end marker """
     captions_marked = [
-        [mark_start + caption + mark_end for caption in captions] for captions in captions_list
+        [' '.join([mark_start, caption, mark_end]) for caption in captions] for captions in captions_list
     ]
     
     return captions_marked
@@ -213,7 +207,7 @@ def create_embedding_layer(word_to_index, word_to_vec_map, num_words):
     return decoder_embedding
 
 
-def create_model(topic_model, feature_model, tokenizer, word_to_vec_map, vocab_size):
+def create_model(topic_model, feature_model, tokenizer, word_to_vec_map, vocab_size, max_tokens):
     state_size = 256
 
     # Encode Images
@@ -228,7 +222,7 @@ def create_model(topic_model, feature_model, tokenizer, word_to_vec_map, vocab_s
     topic_input = Input(
         shape=K.int_shape(topic_model.output)[1:], name='topic_input'
     )
-    caption_input = Input(shape=(None,), name='caption_input')
+    caption_input = Input(shape=(max_tokens,), name='caption_input')
     caption_embedding = create_embedding_layer(tokenizer.word_index, word_to_vec_map, vocab_size)
     caption_lstm = LSTM(state_size, name='caption_lstm')
 
@@ -260,67 +254,70 @@ def create_model(topic_model, feature_model, tokenizer, word_to_vec_map, vocab_s
 
 
 def calculate_steps_per_epoch(captions_list, batch_size):
-    # Number of captions for each image in the dataset
+    # Number of captions for each image
     num_captions = [len(captions) for captions in captions_list]
-
-    # Total number of captions in the training-set
+    
+    # Total number of captions
     total_num_captions = np.sum(num_captions)
-
-    # Approximate number of batches required per epoch,
-    # if we want to process each caption and image pair once per epoch
-    steps_per_epoch = int(total_num_captions / batch_size)
-    return steps_per_epoch
+    
+    return int(total_num_captions / batch_size)
 
 
-def train(model, generator, num_images, captions_list, args):
+def train(model, generator_train, generator_val, captions_train, captions_val, args):
     # define callbacks
-    path_checkpoint = 'weights/checkpoint.keras'
+    path_checkpoint = 'weights/weights.{epoch:02d}-{val_loss:.2f}.hdf5'
     callback_checkpoint = ModelCheckpoint(
         filepath=path_checkpoint,
+        monitor='val_loss',
         verbose=1,
-        save_weights_only=True
+        save_best_only=True
     )
     callback_tensorboard = TensorBoard(
         log_dir='./weights/logs/',
-        histogram_freq=0,
-        write_graph=False
+        histogram_freq=3,
+        write_graph=True,
+        write_images=True
     )
-    callbacks = [callback_checkpoint, callback_tensorboard]
+    callback_early_stop = EarlyStopping(monitor='val_loss', patience=8, verbose=1)
+    callbacks = [callback_checkpoint, callback_tensorboard, callback_early_stop]
 
     # train model
     model.fit_generator(
-        generator=generator,
-        steps_per_epoch=calculate_steps_per_epoch(captions_list, args.batch_size),
+        generator=generator_train,
+        steps_per_epoch=calculate_steps_per_epoch(captions_train, args.batch_size),
         epochs=args.epochs,
-        callbacks=callbacks
+        callbacks=callbacks,
+        validation_data=generator_val,
+        validation_steps=calculate_steps_per_epoch(captions_val, args.batch_size)
     )
 
     print('\n\nModel training finished.')
 
 
 def main(args):
-    num_images_train, num_classes = get_raw_data(args)
+    num_images_train, num_images_val, num_classes = get_raw_data(args)
 
     # Load pre-trained image models
     topic_model, feature_model = load_pre_trained_model(args.image_weights, num_classes)
 
     # load dataset
-    topic_transfer_values_train, feature_transfer_values_train, images_train, captions_train = load_data(
+    topic_transfer_values_train, feature_transfer_values_train, captions_train = load_data(
         'train', args
     )
-    # topic_transfer_values_val, feature_transfer_values_val, images_val, captions_val = load_data(
-    #     'val', args
-    # )
+    topic_transfer_values_val, feature_transfer_values_val, captions_val = load_data(
+        'val', args
+    )
     print("topic shape:", topic_transfer_values_train.shape)
     print("feature shape:", feature_transfer_values_train.shape)
 
     # process captions
-    mark_start = 'startseq '
-    mark_end = ' endseq'
-    captions_train_marked = mark_captions(captions_train, mark_start, mark_end)
+    mark_start = 'startseq'
+    mark_end = 'endseq'
+    captions_train_marked = mark_captions(captions_train, mark_start, mark_end)  # training
+    captions_val_marked = mark_captions(captions_val, mark_start, mark_end)  # validation
     tokenizer, vocab_size = create_tokenizer(captions_train_marked)
 
-    # generator
+    # training-dataset generator
     generator_train = batch_generator(
         topic_transfer_values_train,
         feature_transfer_values_train,
@@ -332,15 +329,38 @@ def main(args):
         vocab_size
     )
 
+    # validation-dataset generator
+    generator_val = batch_generator(
+        topic_transfer_values_val,
+        feature_transfer_values_val,
+        captions_val_marked,
+        tokenizer,
+        num_images_val,
+        args.batch_size,
+        args.max_tokens,
+        vocab_size
+    )
+
     # embeddings
     word_to_vec_map = read_glove_vecs('{}/glove.6B.300d.txt'.format('dataset'))
     size = word_to_vec_map['unk'].shape
     word_to_vec_map[mark_start.strip()] = np.random.uniform(low=-1.0, high=1.0, size=size)
     word_to_vec_map[mark_end.strip()] = np.random.uniform(low=-1.0, high=1.0, size=size)
 
-    # model
-    model = create_model(topic_model, feature_model, tokenizer, word_to_vec_map, vocab_size)
-    train(model, generator_train, num_images_train, captions_train, args)
+    # create model
+    model = create_model(
+        topic_model, feature_model, tokenizer, word_to_vec_map, vocab_size, args.max_tokens
+    )
+
+    # train the model
+    train(
+        model,
+        generator_train,
+        generator_val,
+        captions_train_marked,
+        captions_val_marked,
+        args
+    )
 
 
 if __name__ == '__main__':

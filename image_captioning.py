@@ -17,7 +17,7 @@ from image_model.topic_layers import load_topic_model, load_feature_model
 
 
 def get_raw_data(args):
-    train_data, val_data, test_data, category_id, id_category = load_coco(
+    train_data, _, _, _, id_category = load_coco(
         args.raw, 'captions'
     )
     return len(train_data[0]), len(id_category)
@@ -31,22 +31,32 @@ def load_data(data_type, args):
     feature_cache_path = os.path.join(
         args.data, 'feature_transfer_values_{}.pkl'.format(data_type)
     )
+    images_cache_path = os.path.join(
+        cache_path_dir, 'images_{}.pkl'.format(data_type)
+    )
     captions_cache_path = os.path.join(
         args.data, 'captions_{}.pkl'.format(data_type)
     )
 
-    if os.path.exists(topic_cache_path) and os.path.exists(feature_cache_path) and os.path.exists(captions_cache_path):
+
+    topic_path_exists = os.path.exists(topic_cache_path)
+    feature_path_exists = os.path.exists(feature_cache_path)
+    image_path_exists = os.path.exists(images_cache_path)
+    caption_path_exists = os.path.exists(captions_cache_path)
+    if topic_path_exists and feature_path_exists and image_path_exists and caption_path_exists:
         with open(topic_cache_path, mode='rb') as file:
             topic_obj = pickle.load(file)
         with open(feature_cache_path, mode='rb') as file:
             feature_obj = pickle.load(file)
+        with open(images_cache_path, mode='rb') as file:
+            images = pickle.load(file)
         with open(captions_cache_path, mode='rb') as file:
             captions = pickle.load(file)
         print("Data loaded from cache-file.")
     else:
         sys.exit('File containing the processed data does not exist.')
 
-    return topic_obj, feature_obj, captions
+    return topic_obj, feature_obj, images, captions
 
 
 def load_pre_trained_model(weights_path, num_classes):
@@ -295,10 +305,10 @@ def main(args):
     topic_model, feature_model = load_pre_trained_model(args.image_weights, num_classes)
 
     # load dataset
-    topic_transfer_values_train, feature_transfer_values_train, captions_train = load_data(
+    topic_transfer_values_train, feature_transfer_values_train, images_train, captions_train = load_data(
         'train', args
     )
-    # topic_transfer_values_val, feature_transfer_values_val, captions_val = load_data(
+    # topic_transfer_values_val, feature_transfer_values_val, images_val, captions_val = load_data(
     #     'val', args
     # )
     print("topic shape:", topic_transfer_values_train.shape)

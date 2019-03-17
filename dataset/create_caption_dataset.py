@@ -80,7 +80,7 @@ def process_images(topic_model, feature_model, filenames, args):
 
 
 def process_data(topic_model, feature_model, data_type, filenames, captions, args):
-    print('Processing {0} images in training-set ...'.format(len(filenames)))
+    print('Processing {0} images in {1}-set ...'.format(len(filenames), data_type))
 
     # Path for the cache-file.
     cache_path_dir = os.path.join(args.root, 'processed_caption_data')
@@ -89,6 +89,9 @@ def process_data(topic_model, feature_model, data_type, filenames, captions, arg
     )
     feature_cache_path = os.path.join(
         cache_path_dir, 'feature_transfer_values_{}.pkl'.format(data_type)
+    )
+    images_cache_path = os.path.join(
+        cache_path_dir, 'images_{}.pkl'.format(data_type)
     )
     captions_cache_path = os.path.join(
         cache_path_dir, 'captions_{}.pkl'.format(data_type)
@@ -107,20 +110,22 @@ def process_data(topic_model, feature_model, data_type, filenames, captions, arg
         pickle.dump(topic_obj, file)
     with open(feature_cache_path, mode='wb') as file:
         pickle.dump(feature_obj, file)
+    with open(images_cache_path, mode='wb') as file:
+        pickle.dump(filenames, file)
     with open(captions_cache_path, mode='wb') as file:
         pickle.dump(captions, file)
     print("Data saved to cache-file.")
 
 
 def main(args):
-    train_data, val_data, test_data, category_id, id_category = load_coco(
+    train_data, val_data, test_data, category_id, _ = load_coco(
         args.raw, 'captions', args.split_train, args.split_val
     )
     train_images, train_captions = train_data  # Load training data
     val_images, val_captions = val_data  # Load validation data
-    # filenames_test, labels_test = test_data  # Load test data
+    test_images, test_captions = test_data  # Load test data
 
-    num_classes = len(id_category)
+    num_classes = len(category_id)
     
     # Load pre-trained image models
     topic_model, feature_model = load_pre_trained_model(args.image_weights, num_classes)
@@ -131,6 +136,9 @@ def main(args):
     )
     process_data(  # validation data
         topic_model, feature_model, 'val', val_images, val_captions, args
+    )
+    process_data(  # test data
+        topic_model, feature_model, 'test', test_images, test_captions, args
     )
 
 

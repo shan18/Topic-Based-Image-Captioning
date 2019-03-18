@@ -207,7 +207,7 @@ def create_embedding_layer(word_to_index, word_to_vec_map, num_words):
     return decoder_embedding
 
 
-def create_model(topic_model, feature_model, tokenizer, word_to_vec_map, vocab_size, max_tokens):
+def create_model(topic_model, feature_model, tokenizer, word_to_vec_map, vocab_size, args):
     state_size = 256
 
     # Encode Images
@@ -222,7 +222,7 @@ def create_model(topic_model, feature_model, tokenizer, word_to_vec_map, vocab_s
     topic_input = Input(
         shape=K.int_shape(topic_model.output)[1:], name='topic_input'
     )
-    caption_input = Input(shape=(max_tokens,), name='caption_input')
+    caption_input = Input(shape=(args.max_tokens,), name='caption_input')
     caption_embedding = create_embedding_layer(tokenizer.word_index, word_to_vec_map, vocab_size)
     caption_lstm = LSTM(state_size, name='caption_lstm')
 
@@ -248,7 +248,7 @@ def create_model(topic_model, feature_model, tokenizer, word_to_vec_map, vocab_s
     )
     print(model.summary())
 
-    model.compile(loss='categorical_crossentropy', optimizer='adam')
+    model.compile(loss='categorical_crossentropy', optimizer=args.optimizer)
 
     return model
 
@@ -349,7 +349,7 @@ def main(args):
 
     # create model
     model = create_model(
-        topic_model, feature_model, tokenizer, word_to_vec_map, vocab_size, args.max_tokens
+        topic_model, feature_model, tokenizer, word_to_vec_map, vocab_size, args
     )
 
     # train the model

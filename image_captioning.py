@@ -278,7 +278,7 @@ def train(model, generator_train, generator_val, captions_train, captions_val, a
         write_graph=True,
         write_images=True
     )
-    callback_early_stop = EarlyStopping(monitor='val_loss', patience=8, verbose=1)
+    callback_early_stop = EarlyStopping(monitor='val_loss', patience=25, verbose=1)
     callbacks = [callback_checkpoint, callback_tensorboard, callback_early_stop]
 
     # train model
@@ -377,7 +377,7 @@ if __name__ == '__main__':
     )
     parser.add_argument('--batch_size', default=10, type=int, help='Number of images per batch')
     parser.add_argument('--epochs', default=30, type=int, help='Epochs')
-    parser.add_argument('--checkpoint', default='checkpoint', help='Filename to store model weights')
+    parser.add_argument('--optimizer', default='adam', choices=['adam', 'rmsprop'], help='Optimizer for the caption model')
     parser.add_argument(
         '--image_weights',
         default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'image_model', 'weights', 'checkpoint.keras'),

@@ -7,7 +7,7 @@ import numpy as np
 from tensorflow.keras import backend as K
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, Dense, LSTM, Embedding, Add, Reshape, Dropout
-from tensorflow.keras.callbacks import ModelCheckpoint, TensorBoard, EarlyStopping
+from tensorflow.keras.callbacks import ModelCheckpoint, TensorBoard, EarlyStopping, ReduceLROnPlateau
 from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
@@ -279,8 +279,9 @@ def train(model, generator_train, generator_val, captions_train, captions_val, a
         histogram_freq=0,
         write_graph=True
     )
-    callback_early_stop = EarlyStopping(monitor='val_loss', patience=25, verbose=1)
-    callbacks = [callback_checkpoint, callback_tensorboard, callback_early_stop]
+    callback_early_stop = EarlyStopping(monitor='val_loss', patience=args.early_stop, verbose=1)
+    callback_reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=args.lr_decay, patience=4, verbose=1, min_lr=args.min_lr)
+    callbacks = [callback_checkpoint, callback_tensorboard, callback_early_stop, callback_reduce_lr]
 
     # train model
     model.fit_generator(
@@ -379,6 +380,9 @@ if __name__ == '__main__':
     parser.add_argument('--batch_size', default=10, type=int, help='Number of images per batch')
     parser.add_argument('--epochs', default=30, type=int, help='Epochs')
     parser.add_argument('--optimizer', default='adam', choices=['adam', 'rmsprop'], help='Optimizer for the caption model')
+    parser.add_argument('--early_stop', default=12, type=int, help='Patience for early stopping callback')
+    parser.add_argument('--lr_decay', default=0.1, type=float, help='Learning rate decay factor')
+    parser.add_argument('--min_lr', default=0.0001, type=float, help='Lower bound on learning rate')
     parser.add_argument(
         '--image_weights',
         default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'image_model', 'weights', 'checkpoint.keras'),

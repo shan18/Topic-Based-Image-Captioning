@@ -6,7 +6,7 @@ import numpy as np
 
 from tensorflow.keras import backend as K
 from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Input, Dense, LSTM, Embedding, Add, Reshape
+from tensorflow.keras.layers import Input, Dense, LSTM, Embedding, Add, Reshape, Dropout
 from tensorflow.keras.callbacks import ModelCheckpoint, TensorBoard, EarlyStopping
 from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.preprocessing.text import Tokenizer
@@ -214,7 +214,8 @@ def create_model(topic_model, feature_model, tokenizer, word_to_vec_map, vocab_s
     feature_input = Input(
         shape=K.int_shape(feature_model.output)[1:], name='feature_input'
     )
-    image_model_output = Dense(state_size, activation='relu', name='image_model_output')(feature_input)
+    feature_net = Dropout(0.5)(feature_input)
+    image_model_output = Dense(state_size, activation='relu', name='image_model_output')(feature_net)
 
     # Encode Captions
 
@@ -234,6 +235,7 @@ def create_model(topic_model, feature_model, tokenizer, word_to_vec_map, vocab_s
     topic_lstm_states = [initial_state_h0, initial_state_c0]
     net = caption_input  # Start the decoder-network with its input-layer
     net = caption_embedding(net)  # Connect the embedding-layer
+    net = Dropout(0.5)(net)
     caption_model_output = caption_lstm(net, initial_state=topic_lstm_states) # Connect the caption LSTM layer
     
     # merge models
@@ -274,9 +276,8 @@ def train(model, generator_train, generator_val, captions_train, captions_val, a
     )
     callback_tensorboard = TensorBoard(
         log_dir='./weights/logs/',
-        histogram_freq=3,
-        write_graph=True,
-        write_images=True
+        histogram_freq=0,
+        write_graph=True
     )
     callback_early_stop = EarlyStopping(monitor='val_loss', patience=25, verbose=1)
     callbacks = [callback_checkpoint, callback_tensorboard, callback_early_stop]

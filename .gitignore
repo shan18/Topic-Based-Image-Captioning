@@ -1,6 +1,8 @@
 # Other files and folders
 resources
+eval_images/
 *.png
+*.jpg
 
 # Large files
 dataset/*

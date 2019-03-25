@@ -5,34 +5,32 @@ import pickle
 import numpy as np
 
 from tensorflow.keras import backend as K
-from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Input, Dense, LSTM, Embedding, Add, Reshape, Dropout
 from tensorflow.keras.callbacks import ModelCheckpoint, TensorBoard, EarlyStopping, ReduceLROnPlateau
 from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 
 from dataset.utils import load_coco
-from image_model.topic_layers import load_topic_model, load_feature_model
+from model_layers import create_model
 
 
-def get_raw_data(args):
+def get_raw_data(path):
     train_data, val_data, _, _, id_category = load_coco(
-        args.raw, 'captions'
+        path, 'captions'
     )
     return len(train_data[0]), len(val_data[0]), len(id_category)
 
 
-def load_data(data_type, args):
+def load_data(data_type, data_dir):
     # Path for the cache-file.
     topic_cache_path = os.path.join(
-        args.data, 'topic_transfer_values_{}.pkl'.format(data_type)
+        data_dir, 'topic_transfer_values_{}.pkl'.format(data_type)
     )
     feature_cache_path = os.path.join(
-        args.data, 'feature_transfer_values_{}.pkl'.format(data_type)
+        data_dir, 'feature_transfer_values_{}.pkl'.format(data_type)
     )
     captions_cache_path = os.path.join(
-        args.data, 'captions_{}.pkl'.format(data_type)
+        data_dir, 'captions_{}.pkl'.format(data_type)
     )
 
 
@@ -51,13 +49,6 @@ def load_data(data_type, args):
         sys.exit('File containing the processed data does not exist.')
 
     return topic_obj, feature_obj, captions
-
-
-def load_pre_trained_model(weights_path, num_classes):
-    topic_model = load_topic_model(num_classes, weights_path)
-    feature_model = load_feature_model()
-    print('Done.\n')
-    return topic_model, feature_model
 
 
 def mark_captions(captions_list, mark_start, mark_end):
@@ -173,88 +164,6 @@ def read_glove_vecs(glove_file):
     return word_to_vec_map
 
 
-def create_embedding_layer(word_to_index, word_to_vec_map, num_words):
-    """ Create a Keras Embedding() layer and load in pre-trained GloVe 100-dimensional vectors
-        @params:
-        :word_to_index -- dictionary containing the each word mapped to its index
-        :word_to_vec_map -- dictionary mapping words to their GloVe vector representation
-        :num_words -- number of words in the vocabulary
-        
-        @return:
-        :decoder_embedding -- pretrained layer Keras instance
-    """
-    
-    vocabulary_length = num_words + 1  # adding 1 to fit Keras embedding (requirement)
-    embedding_dimensions = word_to_vec_map['unk'].shape[0]  # define dimensionality of GloVe word vectors (= 300)
-    
-    embedding_matrix = np.zeros((vocabulary_length, embedding_dimensions))  # initialize with zeros
-    for word, index in word_to_index.items():
-        try:
-            embedding_matrix[index, :] = word_to_vec_map[word]
-        except KeyError:
-            embedding_matrix[index, :] = word_to_vec_map['unk']
-    
-    # we don't want the embeddings to be updated, thus trainable parameter is set to False
-    decoder_embedding = Embedding(
-        input_dim=vocabulary_length,
-        output_dim=embedding_dimensions,
-        trainable=False,
-        name='decoder_embedding'
-    )
-    decoder_embedding.build((None,))
-    decoder_embedding.set_weights([embedding_matrix])  # with this the layer is now pretrained
-    
-    return decoder_embedding
-
-
-def create_model(topic_model, feature_model, tokenizer, word_to_vec_map, vocab_size, args):
-    state_size = 256
-
-    # Encode Images
-    feature_input = Input(
-        shape=K.int_shape(feature_model.output)[1:], name='feature_input'
-    )
-    feature_net = Dropout(0.5)(feature_input)
-    image_model_output = Dense(state_size, activation='relu', name='image_model_output')(feature_net)
-
-    # Encode Captions
-
-    # Define layers
-    topic_input = Input(
-        shape=K.int_shape(topic_model.output)[1:], name='topic_input'
-    )
-    caption_input = Input(shape=(args.max_tokens,), name='caption_input')
-    caption_embedding = create_embedding_layer(tokenizer.word_index, word_to_vec_map, vocab_size)
-    caption_lstm = LSTM(state_size, name='caption_lstm')
-
-    # connect layers
-    topic_input_reshaped = Reshape(target_shape=(K.int_shape(topic_input)[1:] + (1,)))(topic_input)
-    _, initial_state_h0, initial_state_c0 = LSTM(
-        state_size, return_state=True, name='topic_lstm'
-    )(topic_input_reshaped)
-    topic_lstm_states = [initial_state_h0, initial_state_c0]
-    net = caption_input  # Start the decoder-network with its input-layer
-    net = caption_embedding(net)  # Connect the embedding-layer
-    net = Dropout(0.5)(net)
-    caption_model_output = caption_lstm(net, initial_state=topic_lstm_states) # Connect the caption LSTM layer
-    
-    # merge models
-    merge_net = Add()([image_model_output, caption_model_output])
-    merge_net = Dense(state_size, activation='relu')(merge_net)
-    outputs = Dense(vocab_size, activation='softmax', name='caption_output')(merge_net)
-
-    # Define model
-    model = Model(
-        inputs=[feature_input, topic_input, caption_input],
-        outputs=outputs
-    )
-    print(model.summary())
-
-    model.compile(loss='categorical_crossentropy', optimizer=args.optimizer)
-
-    return model
-
-
 def calculate_steps_per_epoch(captions_list, batch_size):
     # Number of captions for each image
     num_captions = [len(captions) for captions in captions_list]
@@ -297,17 +206,12 @@ def train(model, generator_train, generator_val, captions_train, captions_val, a
 
 
 def main(args):
-    num_images_train, num_images_val, num_classes = get_raw_data(args)
-
-    # Load pre-trained image models
-    topic_model, feature_model = load_pre_trained_model(args.image_weights, num_classes)
-
-    # load dataset
+    # Load pre-processed data
     topic_transfer_values_train, feature_transfer_values_train, captions_train = load_data(
-        'train', args
+        'train', args.data
     )
     topic_transfer_values_val, feature_transfer_values_val, captions_val = load_data(
-        'val', args
+        'val', args.data
     )
     print("topic shape:", topic_transfer_values_train.shape)
     print("feature shape:", feature_transfer_values_train.shape)
@@ -318,6 +222,8 @@ def main(args):
     captions_train_marked = mark_captions(captions_train, mark_start, mark_end)  # training
     captions_val_marked = mark_captions(captions_val, mark_start, mark_end)  # validation
     tokenizer, vocab_size = create_tokenizer(captions_train_marked)
+
+    num_images_train, num_images_val, num_classes = get_raw_data(args.raw)
 
     # training-dataset generator
     generator_train = batch_generator(
@@ -349,10 +255,8 @@ def main(args):
     word_to_vec_map[mark_start.strip()] = np.random.uniform(low=-1.0, high=1.0, size=size)
     word_to_vec_map[mark_end.strip()] = np.random.uniform(low=-1.0, high=1.0, size=size)
 
-    # create model
-    model = create_model(
-        topic_model, feature_model, tokenizer, word_to_vec_map, vocab_size, args
-    )
+    # Create Model
+    model = create_model(args.image_weights, num_classes, tokenizer, word_to_vec_map, vocab_size, args.max_tokens)
 
     # train the model
     train(
@@ -379,7 +283,6 @@ if __name__ == '__main__':
     )
     parser.add_argument('--batch_size', default=10, type=int, help='Number of images per batch')
     parser.add_argument('--epochs', default=30, type=int, help='Epochs')
-    parser.add_argument('--optimizer', default='adam', choices=['adam', 'rmsprop'], help='Optimizer for the caption model')
     parser.add_argument('--early_stop', default=12, type=int, help='Patience for early stopping callback')
     parser.add_argument('--lr_decay', default=0.1, type=float, help='Learning rate decay factor')
     parser.add_argument('--min_lr', default=0.0001, type=float, help='Lower bound on learning rate')

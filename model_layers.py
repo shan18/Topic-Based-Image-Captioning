@@ -1,0 +1,114 @@
+import numpy as np
+from tensorflow.keras import backend as K
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Input, Dense, LSTM, Embedding, Add, Reshape, Dropout
+
+from image_model.topic_layers import load_topic_model, load_feature_model
+
+
+def load_pre_trained_image_model(weights_path, num_classes):
+    topic_model = load_topic_model(num_classes, weights_path)
+    feature_model = load_feature_model()
+    print('Done.\n')
+    return topic_model, feature_model
+
+
+def create_image_encoder(feature_model, state_size):
+    """ Encode Images """
+    feature_input = Input(
+        shape=K.int_shape(feature_model.output)[1:], name='feature_input'
+    )
+    feature_net = Dropout(0.5)(feature_input)
+    image_model_output = Dense(state_size, activation='relu', name='image_model_output')(feature_net)
+    return feature_input, image_model_output
+
+
+def create_embedding_layer(word_to_index, word_to_vec_map, num_words):
+    """ Create a Keras Embedding() layer and load in pre-trained GloVe 100-dimensional vectors
+        @params:
+        :word_to_index -- dictionary containing the each word mapped to its index
+        :word_to_vec_map -- dictionary mapping words to their GloVe vector representation
+        :num_words -- number of words in the vocabulary
+        
+        @return:
+        :decoder_embedding -- pretrained layer Keras instance
+    """
+    
+    vocabulary_length = num_words + 1  # adding 1 to fit Keras embedding (requirement)
+    embedding_dimensions = word_to_vec_map['unk'].shape[0]  # define dimensionality of GloVe word vectors (= 300)
+    
+    embedding_matrix = np.zeros((vocabulary_length, embedding_dimensions))  # initialize with zeros
+    for word, index in word_to_index.items():
+        try:
+            embedding_matrix[index, :] = word_to_vec_map[word]
+        except KeyError:
+            embedding_matrix[index, :] = word_to_vec_map['unk']
+    
+    # we don't want the embeddings to be updated, thus trainable parameter is set to False
+    decoder_embedding = Embedding(
+        input_dim=vocabulary_length,
+        output_dim=embedding_dimensions,
+        trainable=False,
+        name='decoder_embedding'
+    )
+    decoder_embedding.build((None,))
+    decoder_embedding.set_weights([embedding_matrix])  # with this the layer is now pretrained
+    
+    return decoder_embedding
+
+
+def create_caption_encoder(topic_model, tokenizer, word_to_vec_map, state_size, vocab_size, max_tokens):
+    """ Encode Captions """
+
+    # Define layers
+    topic_input = Input(
+        shape=K.int_shape(topic_model.output)[1:], name='topic_input'
+    )
+    caption_input = Input(shape=(max_tokens,), name='caption_input')
+    caption_embedding = create_embedding_layer(tokenizer.word_index, word_to_vec_map, vocab_size)
+    caption_lstm = LSTM(state_size, name='caption_lstm')
+
+    # connect layers
+    topic_input_reshaped = Reshape(target_shape=(K.int_shape(topic_input)[1:] + (1,)))(topic_input)
+    _, initial_state_h0, initial_state_c0 = LSTM(
+        state_size, return_state=True, name='topic_lstm'
+    )(topic_input_reshaped)
+    topic_lstm_states = [initial_state_h0, initial_state_c0]
+    net = caption_input  # Start the decoder-network with its input-layer
+    net = caption_embedding(net)  # Connect the embedding-layer
+    net = Dropout(0.5)(net)
+    caption_model_output = caption_lstm(net, initial_state=topic_lstm_states) # Connect the caption LSTM layer
+
+    return topic_input, caption_input, caption_model_output
+
+
+def create_model(image_model_weights, num_topics, tokenizer, word_to_vec_map, vocab_size, max_tokens):
+    state_size = 256
+
+    # Load pre-trained image model
+    topic_model, feature_model = load_pre_trained_image_model(image_model_weights, num_topics)
+
+    # Encode Images
+    feature_input, image_model_output = create_image_encoder(feature_model, state_size)
+
+    # Encode Captions
+    topic_input, caption_input, caption_model_output = create_caption_encoder(
+        topic_model, tokenizer, word_to_vec_map, state_size, vocab_size, max_tokens
+    )
+    
+    # merge encoders and create the decoder
+    merge_net = Add()([image_model_output, caption_model_output])
+    merge_net = Dense(state_size, activation='relu')(merge_net)
+    outputs = Dense(vocab_size, activation='softmax', name='caption_output')(merge_net)
+
+    # Define model
+    model = Model(
+        inputs=[feature_input, topic_input, caption_input],
+        outputs=outputs
+    )
+    print(model.summary())
+
+    model.compile(loss='categorical_crossentropy', optimizer='adam')
+
+    return model
+

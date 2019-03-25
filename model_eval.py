@@ -159,6 +159,9 @@ def main(args):
         max_tokens
     )
 
+    # Load weights
+    model.load_weights(args.model_weights)
+
     # Evaluate
     evaluate_model(topic_values, feature_values, model, captions_test, tokenizer, mark_start, mark_end, max_tokens)
 
@@ -184,6 +187,11 @@ if __name__ == '__main__':
         '--image_weights',
         default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'image_model', 'weights', 'checkpoint.keras'),
         help='Path to weights of the topic model'
+    )
+    parser.add_argument(
+        '--model_weights',
+        required=True,
+        help='Path to weights of the captioning model'
     )
     args = parser.parse_args()
 

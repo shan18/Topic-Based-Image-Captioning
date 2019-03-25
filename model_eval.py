@@ -1,4 +1,5 @@
 import os
+import sys
 import argparse
 import numpy as np
 from tensorflow.keras.preprocessing.sequence import pad_sequences
@@ -160,7 +161,13 @@ def main(args):
     )
 
     # Load weights
-    model.load_weights(args.model_weights)
+    try:
+        model.load_weights(args.model_weights)
+        print('Weights loaded.')
+    except Exception as e:
+        print('Error loading the weights.')
+        print(e)
+        sys.exit(1)
 
     # Evaluate
     evaluate_model(topic_values, feature_values, model, captions_test, tokenizer, mark_start, mark_end, max_tokens)

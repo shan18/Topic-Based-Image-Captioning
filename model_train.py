@@ -14,7 +14,7 @@ from dataset.utils import load_coco
 from model_layers import create_model
 
 
-def get_raw_data(path):
+def get_data_size(path):
     train_data, val_data, _, _, id_category = load_coco(
         path, 'captions'
     )
@@ -150,20 +150,6 @@ def batch_generator(topic_transfer_values, feature_transfer_values, captions_lis
         yield (x_data, y_data)
 
 
-def read_glove_vecs(glove_file):
-    print('Creating word to vec map...')
-    with open(glove_file, 'r') as f:
-        words = set()
-        word_to_vec_map = {}
-        for line in f:
-            line = line.strip().split()
-            curr_word = line[0]
-            words.add(curr_word)
-            word_to_vec_map[curr_word] = np.array(line[1:], dtype=np.float32)
-    print('Done!')
-    return word_to_vec_map
-
-
 def calculate_steps_per_epoch(captions_list, batch_size):
     # Number of captions for each image
     num_captions = [len(captions) for captions in captions_list]
@@ -223,7 +209,7 @@ def main(args):
     captions_val_marked = mark_captions(captions_val, mark_start, mark_end)  # validation
     tokenizer, vocab_size = create_tokenizer(captions_train_marked)
 
-    num_images_train, num_images_val, num_classes = get_raw_data(args.raw)
+    num_images_train, num_images_val, num_classes = get_data_size(args.raw)
 
     # training-dataset generator
     generator_train = batch_generator(
@@ -249,14 +235,17 @@ def main(args):
         vocab_size
     )
 
-    # embeddings
-    word_to_vec_map = read_glove_vecs('{}/glove.6B.300d.txt'.format('dataset'))
-    size = word_to_vec_map['unk'].shape
-    word_to_vec_map[mark_start.strip()] = np.random.uniform(low=-1.0, high=1.0, size=size)
-    word_to_vec_map[mark_end.strip()] = np.random.uniform(low=-1.0, high=1.0, size=size)
-
     # Create Model
-    model = create_model(args.image_weights, num_classes, tokenizer, word_to_vec_map, vocab_size, args.max_tokens)
+    model = create_model(
+        args.image_weights,
+        num_classes,
+        tokenizer,
+        args.glove,
+        mark_start,
+        mark_end,
+        vocab_size,
+        args.max_tokens
+    )
 
     # train the model
     train(
@@ -280,6 +269,11 @@ if __name__ == '__main__':
         '--raw',
         default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dataset', 'coco_raw.pickle'),
         help='Path to the simplified raw coco file'
+    )
+    parser.add_argument(
+        '--glove',
+        default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dataset', 'glove.6B.300d.txt'),
+        help='Path to pre-trained GloVe vectors'
     )
     parser.add_argument('--batch_size', default=10, type=int, help='Number of images per batch')
     parser.add_argument('--epochs', default=30, type=int, help='Epochs')

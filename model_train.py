@@ -275,7 +275,7 @@ if __name__ == '__main__':
         default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dataset', 'glove.6B.300d.txt'),
         help='Path to pre-trained GloVe vectors'
     )
-    parser.add_argument('--batch_size', default=10, type=int, help='Number of images per batch')
+    parser.add_argument('--batch_size', default=30, type=int, help='Number of images per batch')
     parser.add_argument('--epochs', default=30, type=int, help='Epochs')
     parser.add_argument('--early_stop', default=12, type=int, help='Patience for early stopping callback')
     parser.add_argument('--lr_decay', default=0.1, type=float, help='Learning rate decay factor')

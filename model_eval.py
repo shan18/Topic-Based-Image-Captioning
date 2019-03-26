@@ -91,7 +91,9 @@ def beam_search_predictions(
     return ' '.join(full_caption)
 
 
-def evaluate_model(topic_values, feature_values, caption_model, captions, tokenizer, mark_start, mark_end, max_tokens):
+def evaluate_model(
+    topic_values, feature_values, caption_model, captions, tokenizer, mark_start, mark_end, max_tokens, mode, beam_width
+):
     actual, predicted = [], []
     captions_length = len(captions)
     
@@ -101,16 +103,27 @@ def evaluate_model(topic_values, feature_values, caption_model, captions, tokeni
     
     for idx in range(captions_length):
         # generate description
-        y_pred = beam_search_predictions(
-            topic_values[idx],
-            feature_values[idx],
-            caption_model,
-            tokenizer,
-            mark_start,
-            mark_end,
-            max_tokens,
-            beam_width=5
-        )
+        if mode == 'beam':
+            y_pred = beam_search_predictions(
+                topic_values[idx],
+                feature_values[idx],
+                caption_model,
+                tokenizer,
+                mark_start,
+                mark_end,
+                max_tokens,
+                beam_width=beam_width
+            )
+        else:
+            y_pred = generate_predictions(
+                topic_values[idx],
+                feature_values[idx],
+                caption_model,
+                tokenizer,
+                mark_start,
+                mark_end,
+                max_tokens
+            )
         
         # store actual and predicted
         references = [caption.split() for caption in captions[idx]]
@@ -170,7 +183,18 @@ def main(args):
         sys.exit(1)
 
     # Evaluate
-    evaluate_model(topic_values, feature_values, model, captions_test, tokenizer, mark_start, mark_end, max_tokens)
+    evaluate_model(
+        topic_values,
+        feature_values,
+        model,
+        captions_test,
+        tokenizer,
+        mark_start,
+        mark_end,
+        max_tokens,
+        args.mode,
+        args.beam_width
+    )
 
 
 if __name__ == '__main__':
@@ -199,6 +223,15 @@ if __name__ == '__main__':
         '--model_weights',
         required=True,
         help='Path to weights of the captioning model'
+    )
+    parser.add_argument(
+        '--mode', choices=['beam', 'argmax'],
+        required=True,
+        help='Mode for predicting captions'
+    )
+    parser.add_argument(
+        '--beam_width', type=int, default=5,
+        help='Width of Beam Search'
     )
     args = parser.parse_args()
 

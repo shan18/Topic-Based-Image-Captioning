@@ -22,4 +22,9 @@
 
 ## Evaluating the generated captions
 
-`$ python model_eval.py --model_weights <path_to_the_trained_caption_model_weights>`
+Captions can be generated using two modes:
+
+- **argmax**: Generating captions using words with the maximum probability
+- **beam**: Generating captions using beam search
+
+`$ python model_eval.py --model_weights <path_to_the_trained_caption_model_weights> --mode <mode_name>`

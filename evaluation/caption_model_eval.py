@@ -1,12 +1,14 @@
 import os
-import sys
 import argparse
 import numpy as np
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from nltk.translate.bleu_score import corpus_bleu
 
-from model_train import load_data, get_data_size, mark_captions, create_tokenizer
-from model_layers import create_model
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from caption_model_train import load_data, get_data_size, mark_captions, create_tokenizer
+from models.caption_model import create_model
 from dataset.utils import print_progress_bar
 
 
@@ -201,22 +203,30 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '--data',
-        default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dataset', 'processed_caption_data'),
+        default=os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))
+        ), 'dataset', 'processed_caption_data'),
         help='Directory containing the processed dataset'
     )
     parser.add_argument(
         '--raw',
-        default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dataset', 'coco_raw.pickle'),
+        default=os.path.join(os.path.dirname(
+            os.path.dirname(os.path.abspath(__file__))
+        ), 'dataset', 'coco_raw.pickle'),
         help='Path to the simplified raw coco file'
     )
     parser.add_argument(
         '--glove',
-        default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dataset', 'glove.6B.300d.txt'),
+        default=os.path.join(os.path.dirname(
+            os.path.dirname(os.path.abspath(__file__))
+        ), 'dataset', 'glove.6B.300d.txt'),
         help='Path to pre-trained GloVe vectors'
     )
     parser.add_argument(
         '--image_weights',
-        default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'image_model', 'weights', 'checkpoint.keras'),
+        default=os.path.join(os.path.dirname(
+            os.path.dirname(os.path.abspath(__file__))
+        ), 'weights', 'topic_category_model.keras'),
         help='Path to weights of the topic model'
     )
     parser.add_argument(

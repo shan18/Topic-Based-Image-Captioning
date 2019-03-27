@@ -11,7 +11,7 @@ from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 
 from dataset.utils import load_coco
-from model_layers import create_model
+from models.caption_model import create_model
 
 
 def get_data_size(path):
@@ -282,10 +282,11 @@ if __name__ == '__main__':
     parser.add_argument('--min_lr', default=0.0001, type=float, help='Lower bound on learning rate')
     parser.add_argument(
         '--image_weights',
-        default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'image_model', 'weights', 'checkpoint.keras'),
+        default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'weights', 'topic_category_model.keras'),
         help='Path to weights of the topic model'
     )
     parser.add_argument('--max_tokens', default=16, type=int, help='Max length of the captions')
     args = parser.parse_args()
 
     main(args)
+

@@ -8,7 +8,7 @@ from tensorflow.keras import backend as K
 from tensorflow.keras.callbacks import ModelCheckpoint, TensorBoard, EarlyStopping
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
-from topic_layers import create_topic_model
+from models.topic_category_model import create_category_model
 
 
 def load_data(filename, data_dir, data_type):
@@ -107,7 +107,7 @@ def main(args):
     id_category = coco_raw['id_category']
 
     # Create model
-    model = create_topic_model(len(id_category))
+    model = create_category_model(len(id_category))
     print(model.summary())
 
     # Train model
@@ -118,17 +118,21 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '--data',
-        default=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'dataset', 'processed_topic_data'),
+        default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dataset', 'processed_topic_data'),
         help='Directory containing the processed dataset'
     )
     parser.add_argument(
         '--raw',
-        default=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'dataset', 'coco_raw.pickle'),
+        default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dataset', 'coco_raw.pickle'),
         help='Path to the simplified raw coco file'
     )
     parser.add_argument('--batch_size', default=64, type=int, help='Batch Size')
     parser.add_argument('--epochs', default=100, type=int, help='Epochs')
-    parser.add_argument('--checkpoint', default='checkpoint', help='Filename to store model weights')
+    parser.add_argument(
+        '--checkpoint',
+        default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'weights', 'topic_category_model.keras'),
+        help='Path to store model weights'
+    )
     parser.add_argument(
         '--augment', action='store_true', help='Use data augmentation to generate new images'
     )
@@ -144,3 +148,4 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     main(args)
+

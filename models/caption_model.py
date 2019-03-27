@@ -3,12 +3,13 @@ from tensorflow.keras import backend as K
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, Dense, LSTM, Embedding, Add, Reshape, Dropout
 
-from image_model.topic_layers import load_topic_model, load_feature_model
+from vgg19 import load_vgg19
+from topic_category_model import load_category_model
 
 
 def load_pre_trained_image_model(weights_path, num_classes):
-    topic_model = load_topic_model(num_classes, weights_path)
-    feature_model = load_feature_model()
+    topic_model = load_category_model(num_classes, weights_path)
+    feature_model = load_vgg19()
     print('Done.\n')
     return topic_model, feature_model
 

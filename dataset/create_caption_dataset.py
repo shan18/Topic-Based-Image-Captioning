@@ -1,20 +1,21 @@
 import os
-import sys
 import argparse
 import pickle
 import numpy as np
 from tensorflow.keras import backend as K
 
+import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from utils import load_coco, load_image, print_progress_bar
-from image_model.topic_layers import load_topic_model, load_feature_model
+from models.vgg19 import load_vgg19
+from models.topic_category_model import load_category_model
 
 
 def load_pre_trained_model(weights_path, num_classes):
     print('Loading pre-trained models...')
-    topic_model = load_topic_model(num_classes, weights_path)
-    feature_model = load_feature_model()
+    topic_model = load_category_model(num_classes, weights_path)
+    feature_model = load_vgg19()
     print('Done.\n')
     return topic_model, feature_model
 
@@ -157,9 +158,8 @@ if __name__ == '__main__':
         default=os.path.join(
             os.path.dirname(
                 os.path.dirname(os.path.abspath(__file__))),
-                'image_model',
                 'weights',
-                'checkpoint.keras'
+                'topic_category_model.keras'
             ),
         help='Path to weights of the topic model'
     )

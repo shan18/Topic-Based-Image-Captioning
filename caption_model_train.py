@@ -170,7 +170,7 @@ def train(model, generator_train, generator_val, captions_train, captions_val, a
         save_best_only=True
     )
     callback_tensorboard = TensorBoard(
-        log_dir='./weights/logs/',
+        log_dir='./weights/caption-logs/',
         histogram_freq=0,
         write_graph=True
     )

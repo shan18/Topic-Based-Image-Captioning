@@ -42,10 +42,19 @@ def train_model(model, train_data, val_data, args):
     path_checkpoint = os.path.join(weights_dir, args.checkpoint + '.keras')
 
     # set model callbacks
-    tb = TensorBoard(log_dir=os.path.join(weights_dir, 'tensorboard-logs'), histogram_freq=0, write_graph=False)
-    checkpoint = ModelCheckpoint(filepath=path_checkpoint, verbose=1, save_weights_only=True)
+    callback_tensorboard = TensorBoard(
+        log_dir=os.path.join(weights_dir, 'topic-category-logs'),
+        histogram_freq=0,
+        write_graph=True
+    )
+    callback_checkpoint = ModelCheckpoint(
+        filepath=path_checkpoint,
+        monitor='val_loss',
+        verbose=1,
+        save_best_only=True
+    )
     # early_stop = EarlyStopping(monitor='val_loss', patience=3, verbose=1)
-    callbacks = [tb, checkpoint]
+    callbacks = [callback_tensorboard, callback_checkpoint]
 
     if not args.augment:  # train without data augmentation
         model.fit(
@@ -130,7 +139,7 @@ if __name__ == '__main__':
     parser.add_argument('--epochs', default=100, type=int, help='Epochs')
     parser.add_argument(
         '--checkpoint',
-        default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'weights', 'topic_category_model.keras'),
+        default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'weights', 'topic_category_model.hdf5'),
         help='Path to store model weights'
     )
     parser.add_argument(

@@ -2,7 +2,7 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.optimizers import Adam
 
-from vgg19 import load_vgg19
+from models.vgg19 import load_vgg19
 
 
 def create_category_model(num_classes):

@@ -33,7 +33,6 @@ def load_data(data_type, data_dir):
         data_dir, 'captions_{}.pkl'.format(data_type)
     )
 
-
     topic_path_exists = os.path.exists(topic_cache_path)
     feature_path_exists = os.path.exists(feature_cache_path)
     caption_path_exists = os.path.exists(captions_cache_path)

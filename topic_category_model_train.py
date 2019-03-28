@@ -127,7 +127,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '--data',
-        default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dataset', 'processed_topic_data'),
+        default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dataset', 'processed_category_data'),
         help='Directory containing the processed dataset'
     )
     parser.add_argument(

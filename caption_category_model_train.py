@@ -14,13 +14,6 @@ from dataset.utils import load_coco
 from models.caption_category_model import create_model
 
 
-def get_data_size(path):
-    train_data, val_data, _, _, id_category = load_coco(
-        path, 'captions'
-    )
-    return len(train_data[0]), len(val_data[0]), len(id_category)
-
-
 def load_data(data_type, data_dir):
     # Path for the cache-file.
     topic_cache_path = os.path.join(
@@ -208,15 +201,13 @@ def main(args):
     captions_val_marked = mark_captions(captions_val, mark_start, mark_end)  # validation
     tokenizer, vocab_size = create_tokenizer(captions_train_marked)
 
-    num_images_train, num_images_val, num_classes = get_data_size(args.raw)
-
     # training-dataset generator
     generator_train = batch_generator(
         topic_transfer_values_train,
         feature_transfer_values_train,
         captions_train_marked,
         tokenizer,
-        num_images_train,
+        len(captions_train),
         args.batch_size,
         args.max_tokens,
         vocab_size
@@ -228,7 +219,7 @@ def main(args):
         feature_transfer_values_val,
         captions_val_marked,
         tokenizer,
-        num_images_val,
+        len(captions_val),
         args.batch_size,
         args.max_tokens,
         vocab_size
@@ -236,8 +227,8 @@ def main(args):
 
     # Create Model
     model = create_model(
-        args.image_weights,
-        num_classes,
+        topic_transfer_values_train.shape[1:],
+        feature_transfer_values_train.shape[1:],
         tokenizer.word_index,
         args.glove,
         mark_start,
@@ -265,11 +256,6 @@ if __name__ == '__main__':
         help='Directory containing the processed dataset'
     )
     parser.add_argument(
-        '--raw',
-        default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dataset', 'coco_raw.pickle'),
-        help='Path to the simplified raw coco file'
-    )
-    parser.add_argument(
         '--glove',
         default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dataset', 'glove.6B.300d.txt'),
         help='Path to pre-trained GloVe vectors'
@@ -279,11 +265,6 @@ if __name__ == '__main__':
     parser.add_argument('--early_stop', default=12, type=int, help='Patience for early stopping callback')
     parser.add_argument('--lr_decay', default=0.1, type=float, help='Learning rate decay factor')
     parser.add_argument('--min_lr', default=0.0001, type=float, help='Lower bound on learning rate')
-    parser.add_argument(
-        '--image_weights',
-        default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'weights', 'topic_category_model.keras'),
-        help='Path to weights of the topic model'
-    )
     parser.add_argument('--max_tokens', default=16, type=int, help='Max length of the captions')
     args = parser.parse_args()
 

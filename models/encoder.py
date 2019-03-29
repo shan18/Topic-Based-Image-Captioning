@@ -4,10 +4,10 @@ from tensorflow.keras.layers import Input, Dense, LSTM, Reshape, Dropout
 from models.embedding_layer import create_embedding_layer
 
 
-def image_encoder(feature_model, state_size):
+def image_encoder(feature_shape, state_size):
     """ Encode Images """
     feature_input = Input(
-        shape=K.int_shape(feature_model.output)[1:], name='feature_input'
+        shape=feature_shape, name='feature_input'
     )
     feature_net = Dropout(0.5)(feature_input)
     image_model_output = Dense(state_size, activation='relu', name='image_model_output')(feature_net)

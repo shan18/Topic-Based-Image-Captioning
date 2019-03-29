@@ -10,36 +10,36 @@ from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 
-from models.caption_category_model import create_model
+from models.caption_lda_model import create_model
 
 
 def load_data(data_type, data_dir):
     # Path for the cache-file.
-    topic_cache_path = os.path.join(
-        data_dir, 'topic_transfer_values_{}.pkl'.format(data_type)
-    )
     feature_cache_path = os.path.join(
         data_dir, 'feature_transfer_values_{}.pkl'.format(data_type)
+    )
+    topics_cache_path = os.path.join(
+        data_dir, 'topics_{}.pkl'.format(data_type)
     )
     captions_cache_path = os.path.join(
         data_dir, 'captions_{}.pkl'.format(data_type)
     )
 
-    topic_path_exists = os.path.exists(topic_cache_path)
     feature_path_exists = os.path.exists(feature_cache_path)
+    topic_path_exists = os.path.exists(topics_cache_path)
     caption_path_exists = os.path.exists(captions_cache_path)
-    if topic_path_exists and feature_path_exists and caption_path_exists:
-        with open(topic_cache_path, mode='rb') as file:
-            topic_obj = pickle.load(file)
+    if feature_path_exists and topic_path_exists and caption_path_exists:
         with open(feature_cache_path, mode='rb') as file:
             feature_obj = pickle.load(file)
+        with open(topics_cache_path, mode='rb') as file:
+            topics = pickle.load(file)
         with open(captions_cache_path, mode='rb') as file:
             captions = pickle.load(file)
     else:
         sys.exit('processed {} data does not exist.'.format(data_type))
 
     print('{} data loaded from cache-file.'.format(data_type))
-    return topic_obj, feature_obj, captions
+    return feature_obj, topics, captions
 
 
 def mark_captions(captions_list, mark_start, mark_end):
@@ -155,7 +155,7 @@ def calculate_steps_per_epoch(captions_list, batch_size):
 
 def train(model, generator_train, generator_val, captions_train, captions_val, args):
     # define callbacks
-    path_checkpoint = 'weights/weights.{epoch:02d}-{val_loss:.2f}.hdf5'
+    path_checkpoint = 'weights/caption-lda.{epoch:02d}-{val_loss:.2f}.hdf5'
     callback_checkpoint = ModelCheckpoint(
         filepath=path_checkpoint,
         monitor='val_loss',
@@ -163,7 +163,7 @@ def train(model, generator_train, generator_val, captions_train, captions_val, a
         save_best_only=True
     )
     callback_tensorboard = TensorBoard(
-        log_dir='./weights/caption-logs/',
+        log_dir='./weights/caption-lda-logs/',
         histogram_freq=0,
         write_graph=True
     )
@@ -186,14 +186,12 @@ def train(model, generator_train, generator_val, captions_train, captions_val, a
 
 def main(args):
     # Load pre-processed data
-    topic_transfer_values_train, feature_transfer_values_train, captions_train = load_data(
+    features_train, topics_train, captions_train = load_data(
         'train', args.data
     )
-    topic_transfer_values_val, feature_transfer_values_val, captions_val = load_data(
+    features_val, topics_val, captions_val = load_data(
         'val', args.data
     )
-    print("topic shape:", topic_transfer_values_train.shape)
-    print("feature shape:", feature_transfer_values_train.shape)
 
     # process captions
     mark_start = 'startseq'
@@ -204,8 +202,8 @@ def main(args):
 
     # training-dataset generator
     generator_train = batch_generator(
-        topic_transfer_values_train,
-        feature_transfer_values_train,
+        topics_train,
+        features_train,
         captions_train_marked,
         tokenizer,
         len(captions_train),
@@ -216,8 +214,8 @@ def main(args):
 
     # validation-dataset generator
     generator_val = batch_generator(
-        topic_transfer_values_val,
-        feature_transfer_values_val,
+        topics_val,
+        features_val,
         captions_val_marked,
         tokenizer,
         len(captions_val),
@@ -228,8 +226,8 @@ def main(args):
 
     # Create Model
     model = create_model(
-        topic_transfer_values_train.shape[1:],
-        feature_transfer_values_train.shape[1:],
+        topics_train.shape[1:],
+        features_train.shape[1:],
         tokenizer.word_index,
         args.glove,
         mark_start,
@@ -253,7 +251,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '--data',
-        default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dataset', 'processed_caption_data'),
+        default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dataset', 'processed_lda_data'),
         help='Directory containing the processed dataset'
     )
     parser.add_argument(
@@ -261,7 +259,7 @@ if __name__ == '__main__':
         default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dataset', 'glove.6B.300d.txt'),
         help='Path to pre-trained GloVe vectors'
     )
-    parser.add_argument('--batch_size', default=30, type=int, help='Number of images per batch')
+    parser.add_argument('--batch_size', default=128, type=int, help='Number of images per batch')
     parser.add_argument('--epochs', default=30, type=int, help='Epochs')
     parser.add_argument('--early_stop', default=12, type=int, help='Patience for early stopping callback')
     parser.add_argument('--lr_decay', default=0.1, type=float, help='Learning rate decay factor')

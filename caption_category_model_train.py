@@ -11,7 +11,7 @@ from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 
 from dataset.utils import load_coco
-from models.caption_model import create_model
+from models.caption_category_model import create_model
 
 
 def get_data_size(path):

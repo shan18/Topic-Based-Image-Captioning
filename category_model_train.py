@@ -8,7 +8,7 @@ from tensorflow.keras import backend as K
 from tensorflow.keras.callbacks import ModelCheckpoint, TensorBoard, EarlyStopping
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
-from models.topic_category_model import create_category_model
+from models.category_model import create_category_model
 
 
 def load_data(filename, data_dir, data_type):

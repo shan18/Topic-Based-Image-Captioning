@@ -5,7 +5,7 @@ import pickle
 import lda
 import numpy as np
 
-from caption_model_train import flatten, create_tokenizer
+from caption_category_model_train import flatten, create_tokenizer
 
 
 def load_data(data_type, data_dir):

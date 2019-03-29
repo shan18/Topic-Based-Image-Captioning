@@ -9,7 +9,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from utils import load_coco, load_image, print_progress_bar
 from models.vgg19 import load_vgg19
-from models.topic_category_model import load_category_model
+from models.category_model import load_category_model
 
 
 def load_pre_trained_model(weights_path, num_classes):

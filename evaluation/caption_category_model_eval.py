@@ -7,8 +7,8 @@ from nltk.translate.bleu_score import corpus_bleu
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from caption_model_train import load_data, get_data_size, mark_captions, create_tokenizer
-from models.caption_model import create_model
+from caption_category_model_train import load_data, get_data_size, mark_captions, create_tokenizer
+from models.caption_category_model import create_model
 from dataset.utils import print_progress_bar
 
 

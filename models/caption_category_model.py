@@ -4,7 +4,7 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, Dense, LSTM, Embedding, Add, Reshape, Dropout
 
 from models.vgg19 import load_vgg19
-from models.topic_category_model import load_category_model
+from models.category_model import load_category_model
 
 
 def load_pre_trained_image_model(weights_path, num_classes):

@@ -238,7 +238,7 @@ def main(args):
     model = create_model(
         args.image_weights,
         num_classes,
-        tokenizer,
+        tokenizer.word_index,
         args.glove,
         mark_start,
         mark_end,

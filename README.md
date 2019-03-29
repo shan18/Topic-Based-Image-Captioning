@@ -8,17 +8,17 @@
 4. Create a simplified version of MSCOCO 2017 dataset  
    `$ python dataset/parse_coco.py --topic topic_name`
 5. To process the dataset for training the topic model  
-   `$ python dataset/create_topic_dataset.py`
+   `$ python dataset/create_category_dataset.py`
 6. To process the dataset for training the caption model  
-   `$ python dataset/create_caption_dataset.py`
+   `$ python dataset/create_caption_category_dataset.py`
 
 ## Training the Topic Category Model
 
-`$ python topic_category_model_train.py`
+`$ python category_model_train.py`
 
 ## Training Caption Model
 
-`$ python caption_model_train.py`
+`$ python caption_category_model_train.py`
 
 ## Evaluating the generated captions
 
@@ -27,4 +27,4 @@ Captions can be generated using two modes:
 - **argmax**: Generating captions using words with the maximum probability
 - **beam**: Generating captions using beam search
 
-`$ python evaluation/caption_model_eval.py --model_weights <path_to_the_trained_caption_model_weights> --mode <mode_name>`
+`$ python evaluation/caption_category_model_eval.py --model_weights <path_to_the_trained_caption_model_weights> --mode <mode_name>`

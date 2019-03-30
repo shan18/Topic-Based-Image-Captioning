@@ -91,7 +91,7 @@ def parse_data(images_data, dataset_type, topic, root_dir):
     del captions_file  # free memory
 
     for image in image_categories:
-        if topic in image_supercategories[image]:
+        if topic == 'all' or topic in image_supercategories[image]:
             images_data[image] = {
                 'file_name': image_file[image],
                 'categories': image_categories[image],
@@ -140,7 +140,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '--topic', default='sports',
         choices=[
-            'person', 'vehicle', 'outdoor', 'animal', 'accessory', 'sports',
+            'all', 'person', 'vehicle', 'outdoor', 'animal', 'accessory', 'sports',
             'kitchen', 'food', 'furniture', 'electronic', 'appliance', 'indoor'
         ],
         help='Topic (supercategory) of the images'

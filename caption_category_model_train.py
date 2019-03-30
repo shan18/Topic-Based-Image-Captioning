@@ -155,7 +155,7 @@ def calculate_steps_per_epoch(captions_list, batch_size):
 
 def train(model, generator_train, generator_val, captions_train, captions_val, args):
     # define callbacks
-    path_checkpoint = 'weights/weights.{epoch:02d}-{val_loss:.2f}.hdf5'
+    path_checkpoint = 'weights/cpcat-weights-{epoch:02d}-{val_loss:.2f}.hdf5'
     callback_checkpoint = ModelCheckpoint(
         filepath=path_checkpoint,
         monitor='val_loss',

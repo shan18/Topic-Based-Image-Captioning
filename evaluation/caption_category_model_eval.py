@@ -7,7 +7,7 @@ from nltk.translate.bleu_score import corpus_bleu
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from caption_category_model_train import load_data, get_data_size, mark_captions, create_tokenizer
+from caption_category_model_train import load_data, mark_captions, create_tokenizer
 from models.caption_category_model import create_model
 from dataset.utils import print_progress_bar
 
@@ -160,14 +160,13 @@ def main(args):
     tokenizer, vocab_size = create_tokenizer(captions_train_marked)
 
     # Get data size
-    _, _, num_classes = get_data_size(args.raw)
     max_tokens = 16
 
     # Create Model
     model = create_model(
-        args.image_weights,
-        num_classes,
-        tokenizer,
+        topic_values.shape[1:],
+        feature_values.shape[1:],
+        tokenizer.word_index,
         args.glove,
         mark_start,
         mark_end,
@@ -209,25 +208,11 @@ if __name__ == '__main__':
         help='Directory containing the processed dataset'
     )
     parser.add_argument(
-        '--raw',
-        default=os.path.join(os.path.dirname(
-            os.path.dirname(os.path.abspath(__file__))
-        ), 'dataset', 'coco_raw.pickle'),
-        help='Path to the simplified raw coco file'
-    )
-    parser.add_argument(
         '--glove',
         default=os.path.join(os.path.dirname(
             os.path.dirname(os.path.abspath(__file__))
         ), 'dataset', 'glove.6B.300d.txt'),
         help='Path to pre-trained GloVe vectors'
-    )
-    parser.add_argument(
-        '--image_weights',
-        default=os.path.join(os.path.dirname(
-            os.path.dirname(os.path.abspath(__file__))
-        ), 'weights', 'topic_category_model.keras'),
-        help='Path to weights of the topic model'
     )
     parser.add_argument(
         '--model_weights',

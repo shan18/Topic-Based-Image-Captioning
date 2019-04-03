@@ -1,6 +1,7 @@
 import os
 import argparse
 import pickle
+import random
 import numpy as np
 from tensorflow.keras import backend as K
 
@@ -29,9 +30,9 @@ def load_coco(input_path, label, split):
     img_ids_test = img_ids[split_idx:]
     
     # load dataset
-    train_images, train_labels = load_images_data(img_ids_train, images_data, label)  # training dataset
-    val_images, val_labels = load_images_data(img_ids_val, images_data, label)  # validation dataset
-    test_images, test_labels = load_images_data(img_ids_test, images_data, label)  # test dataset
+    train_images, train_labels = load_images_data(img_ids_train, images_data_train, label)  # training dataset
+    val_images, val_labels = load_images_data(img_ids_val, images_data_val, label)  # validation dataset
+    test_images, test_labels = load_images_data(img_ids_test, images_data_train, label)  # test dataset
     
     return (train_images, train_labels), (val_images, val_labels), (test_images, test_labels), category_id, id_category
 

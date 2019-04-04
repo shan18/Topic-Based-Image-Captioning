@@ -92,7 +92,7 @@ def process_data(feature_model, data_type, filenames, captions, args):
     print('Processing {0} images in {1}-set ...'.format(len(filenames), data_type))
 
     # Path for the cache-file.
-    cache_path_dir = os.path.join(args.root, 'processed_all_data')
+    cache_path_dir = args.save
     feature_cache_path = os.path.join(
         cache_path_dir, 'feature_transfer_values_{}.pkl'.format(data_type)
     )
@@ -153,6 +153,10 @@ if __name__ == '__main__':
     parser.add_argument(
         '--raw', default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'coco_raw_all.pickle'),
         help='Path to the simplified raw coco file'
+    )
+    parser.add_argument(
+        '--save', default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'processed_all_data'),
+        help='Directory to store processed dataset'
     )
     parser.add_argument(
         '--batch_size', default=128, type=int,

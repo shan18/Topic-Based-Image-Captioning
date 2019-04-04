@@ -22,12 +22,11 @@ def load_coco(input_path, label, split):
     id_category = coco_raw['id_category']
     
     # split dataset
-    img_ids_val = list(images_data_val.keys())
+    img_ids_val = list(images_data_val.keys())[:split]
     img_ids = list(images_data_train.keys())
-    split_idx = int(len(img_ids) * split)
     random.shuffle(img_ids)
-    img_ids_train = img_ids[:split_idx]
-    img_ids_test = img_ids[split_idx:]
+    img_ids_train = img_ids[split:]
+    img_ids_test = img_ids[:split]
     
     # load dataset
     train_images, train_labels = load_images_data(img_ids_train, images_data_train, label)  # training dataset
@@ -159,7 +158,7 @@ if __name__ == '__main__':
         '--batch_size', default=128, type=int,
         help='Batch size for the pre-trained model to make predictions'
     )
-    parser.add_argument('--split', default=0.95, help='Split for training data')
+    parser.add_argument('--split', default=5000, help='Number of images for validation and test set')
     parser.add_argument('--grayscale', action='store_true', help='Images will be stored in grayscale')
     args = parser.parse_args()
 

@@ -22,11 +22,18 @@ def load_coco(input_path, label, split):
     id_category = coco_raw['id_category']
     
     # split dataset
-    img_ids_val = list(images_data_val.keys())[:split]
     img_ids = list(images_data_train.keys())
     random.shuffle(img_ids)
-    img_ids_train = img_ids[split:]
-    img_ids_test = img_ids[:split]
+
+    img_ids_val = list(images_data_val.keys())[:split]
+    val_split_diff = split - len(img_ids_val)
+    if val_split_diff > 0:
+        for img_id in img_ids_train[:val_split_diff]:
+            img_ids_val.append(img_id)
+            images_data_val[img_id] = images_data_train[img_id]
+
+    img_ids_test = img_ids[val_split_diff:split + val_split_diff]
+    img_ids_train = img_ids[split + val_split_diff:]
     
     # load dataset
     train_images, train_labels = load_images_data(img_ids_train, images_data_train, label)  # training dataset
@@ -131,6 +138,11 @@ def main(args):
     
     # Load pre-trained image models
     feature_model = load_vgg19()
+
+    print('\nDataset sizes:')
+    print('Training:', len(train_images))
+    print('Validation:', len(val_images))
+    print('Test:', len(test_images))
 
     # Generate and save dataset
     process_data(  # training data

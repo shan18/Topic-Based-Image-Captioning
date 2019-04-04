@@ -28,7 +28,7 @@ def load_coco(input_path, label, split):
     img_ids_val = list(images_data_val.keys())[:split]
     val_split_diff = split - len(img_ids_val)
     if val_split_diff > 0:
-        for img_id in img_ids_train[:val_split_diff]:
+        for img_id in img_ids[:val_split_diff]:
             img_ids_val.append(img_id)
             images_data_val[img_id] = images_data_train[img_id]
 

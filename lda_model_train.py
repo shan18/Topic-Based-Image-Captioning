@@ -17,7 +17,8 @@ def load_data(data_type, data_dir):
     if os.path.exists(captions_cache_path):
         with open(captions_cache_path, mode='rb') as file:
             captions = pickle.load(file)
-        print("Data loaded from cache-file.")
+        print('{} data loaded from cache-file.'.format(data_type))
+        print('{} data size: {}'.format(data_type, len(captions)))
     else:
         sys.exit('File containing the processed data does not exist.')
 

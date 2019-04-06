@@ -64,7 +64,9 @@ def get_supercategories(image_categories, cat_to_super):
     return image_supercategories
 
 
-def parse_data(images_data, dataset_type, topic, root_dir):
+def parse_data(dataset_type, root_dir):
+    images_data = {}
+
     # load instances
     print('Loading instances...')
     categories_file = json.load(open('{}/annotations/instances_{}2017.json'.format(root_dir, dataset_type), 'r'))
@@ -72,10 +74,6 @@ def parse_data(images_data, dataset_type, topic, root_dir):
 
     # group categories by image
     image_categories = get_categories(categories_file)
-
-    # group supercategories by image
-    cat_to_super = group_supercategories(categories_file['categories'])
-    image_supercategories = get_supercategories(image_categories, cat_to_super)
 
     # load annotations
     del categories_file  # free memory
@@ -91,12 +89,11 @@ def parse_data(images_data, dataset_type, topic, root_dir):
     del captions_file  # free memory
 
     for image in image_categories:
-        if topic == 'all' or topic in image_supercategories[image]:
-            images_data[image] = {
-                'file_name': image_file[image],
-                'categories': image_categories[image],
-                'captions': image_captions[image]
-            }
+        images_data[image] = {
+            'file_name': image_file[image],
+            'categories': image_categories[image],
+            'captions': image_captions[image]
+        }
     return images_data
 
 
@@ -112,12 +109,13 @@ def map_category_id(category_map):
     return category_id, id_category
 
 
-def save_data(images_data, category_id, id_category, root_dir):
+def save_data(images_data_train, images_data_val, category_id, id_category, root_dir):
     """ Save parsed dataset """
     print('\nSaving raw dataset...')
     
     coco_raw = {
-        'images_data': images_data,
+        'images_data_train': images_data_train,
+        'images_data_val': images_data_val,
         'category_id': category_id,
         'id_category': id_category
     }
@@ -137,20 +135,11 @@ if __name__ == '__main__':
         '--root', default=os.path.dirname(os.path.abspath(__file__)),
         help='Root directory containing the dataset folders'
     )
-    parser.add_argument(
-        '--topic', default='sports',
-        choices=[
-            'all', 'person', 'vehicle', 'outdoor', 'animal', 'accessory', 'sports',
-            'kitchen', 'food', 'furniture', 'electronic', 'appliance', 'indoor'
-        ],
-        help='Topic (supercategory) of the images'
-    )
     args = parser.parse_args()
 
     # get complete dataset
-    images_data = {}
-    images_data = parse_data(images_data, 'train', args.topic, args.root)
-    images_data = parse_data(images_data, 'val', args.topic, args.root)
+    images_data_train = parse_data('train', args.root)
+    images_data_val = parse_data('val', args.root)
 
     # assign each category an id.
     # we are not using the default ids given in the dataset because
@@ -162,4 +151,4 @@ if __name__ == '__main__':
     print('Done.')
 
     # save parsed coco dataset
-    save_data(images_data, category_id, id_category, args.root)
+    save_data(images_data_train, images_data_val, category_id, id_category, args.root)

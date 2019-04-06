@@ -8,42 +8,11 @@ from tensorflow.keras import backend as K
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from utils import load_images_data, load_image, print_progress_bar
+from utils import load_coco, load_image, print_progress_bar
 from models.vgg19 import load_vgg19
 
 
-def load_coco(input_path, label, split):
-    """ Load coco dataset """
-    with open(input_path, 'rb') as file:
-        coco_raw = pickle.load(file)
-    images_data_train = coco_raw['images_data_train']
-    images_data_val = coco_raw['images_data_val']
-    category_id = coco_raw['category_id']
-    id_category = coco_raw['id_category']
-    
-    # split dataset
-    img_ids = list(images_data_train.keys())
-    random.shuffle(img_ids)
-
-    img_ids_val = list(images_data_val.keys())[:split]
-    val_split_diff = split - len(img_ids_val)
-    if val_split_diff > 0:
-        for img_id in img_ids[:val_split_diff]:
-            img_ids_val.append(img_id)
-            images_data_val[img_id] = images_data_train[img_id]
-
-    img_ids_test = img_ids[val_split_diff:split + val_split_diff]
-    img_ids_train = img_ids[split + val_split_diff:]
-    
-    # load dataset
-    train_images, train_labels = load_images_data(img_ids_train, images_data_train, label)  # training dataset
-    val_images, val_labels = load_images_data(img_ids_val, images_data_val, label)  # validation dataset
-    test_images, test_labels = load_images_data(img_ids_test, images_data_train, label)  # test dataset
-    
-    return (train_images, train_labels), (val_images, val_labels), (test_images, test_labels), category_id, id_category
-
-
-def process_images(feature_model, filenames, args):
+def process_images(feature_model, filenames, data_dir, batch_size):
     """
     Process all the given files in the given data_dir using the
     pre-trained feature-model as well as the feature-model and return
@@ -56,7 +25,7 @@ def process_images(feature_model, filenames, args):
     img_size = K.int_shape(feature_model.input)[1:3]    # Expected input size of the pre-trained network
 
     # Pre-allocate input-batch-array for images.
-    shape = (args.batch_size,) + img_size + (3,)
+    shape = (batch_size,) + img_size + (3,)
     image_batch = np.zeros(shape=shape, dtype=np.float32)
 
     # Pre-allocate output-array for transfer-values.
@@ -69,15 +38,15 @@ def process_images(feature_model, filenames, args):
     print_progress_bar(start_index, num_images)  # Initial call to print 0% progress
 
     while start_index < num_images:
-        end_index = start_index + args.batch_size
+        end_index = start_index + batch_size
         if end_index > num_images:
             end_index = num_images
         current_batch_size = end_index - start_index
 
         # Load all the images in the batch.
         for i, filename in enumerate(filenames[start_index:end_index]):
-            path = os.path.join(args.root, filename)
-            img = load_image(path, size=img_size, grayscale=args.grayscale)
+            path = os.path.join(data_dir, filename)
+            img = load_image(path, size=img_size)
             image_batch[i] = img
 
         # Use the pre-trained models to process the image.
@@ -95,13 +64,16 @@ def process_images(feature_model, filenames, args):
     return feature_transfer_values
 
 
-def process_data(feature_model, data_type, filenames, captions, args):
+def process_data(feature_model, data_type, img_ids, filenames, captions, save_path, data_dir, batch_size):
     print('Processing {0} images in {1}-set ...'.format(len(filenames), data_type))
 
     # Path for the cache-file.
-    cache_path_dir = args.save
+    cache_path_dir = save_path
     feature_cache_path = os.path.join(
         cache_path_dir, 'feature_transfer_values_{}.pkl'.format(data_type)
+    )
+    images_id_cache_path = os.path.join(
+        cache_path_dir, 'images_id_{}.pkl'.format(data_type)
     )
     images_cache_path = os.path.join(
         cache_path_dir, 'images_{}.pkl'.format(data_type)
@@ -112,15 +84,17 @@ def process_data(feature_model, data_type, filenames, captions, args):
     
     # Check if directory to store processed data exists
     if not os.path.exists(cache_path_dir):
-        print('Directory created:', cache_path_dir)
         os.mkdir(cache_path_dir)
+        print('Directory created:', cache_path_dir)
 
     # Process all images and save their transfer-values
     feature_obj = process_images(
-        feature_model, filenames, args
+        feature_model, filenames, data_dir, batch_size
     )
     with open(feature_cache_path, mode='wb') as file:
         pickle.dump(feature_obj, file)
+    with open(images_id_cache_path, mode='wb') as file:
+        pickle.dump(img_ids, file)
     with open(images_cache_path, mode='wb') as file:
         pickle.dump(filenames, file)
     with open(captions_cache_path, mode='wb') as file:
@@ -130,11 +104,11 @@ def process_data(feature_model, data_type, filenames, captions, args):
 
 def main(args):
     train_data, val_data, test_data, _, _ = load_coco(
-        args.raw, 'captions', args.split
+        args.raw, args.split
     )
-    train_images, train_captions = train_data  # Load training data
-    val_images, val_captions = val_data  # Load validation data
-    test_images, test_captions = test_data  # Load test data
+    train_img_ids, train_images, train_captions = train_data  # Load training data
+    val_img_ids, val_images, val_captions = val_data  # Load validation data
+    test_img_ids, test_images, test_captions = test_data  # Load test data
     
     # Load pre-trained image models
     feature_model = load_vgg19()
@@ -146,13 +120,13 @@ def main(args):
 
     # Generate and save dataset
     process_data(  # training data
-        feature_model, 'train', train_images, train_captions, args
+        feature_model, 'train', train_img_ids, train_images, train_captions, args.save, args.root, args.batch_size
     )
     process_data(  # validation data
-        feature_model, 'val', val_images, val_captions, args
+        feature_model, 'val', val_img_ids, val_images, val_captions, args.save, args.root, args.batch_size
     )
     process_data(  # test data
-        feature_model, 'test', test_images, test_captions, args
+        feature_model, 'test', test_img_ids, test_images, test_captions, args.save, args.root, args.batch_size
     )
 
 
@@ -163,19 +137,18 @@ if __name__ == '__main__':
         help='Root directory containing the dataset folders'
     )
     parser.add_argument(
-        '--raw', default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'coco_raw_all.pickle'),
+        '--raw', default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'coco_raw.pickle'),
         help='Path to the simplified raw coco file'
     )
     parser.add_argument(
-        '--save', default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'processed_all_data'),
+        '--save', default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'processed_data'),
         help='Directory to store processed dataset'
     )
     parser.add_argument(
-        '--batch_size', default=128, type=int,
+        '--batch_size', default=512, type=int,
         help='Batch size for the pre-trained model to make predictions'
     )
     parser.add_argument('--split', default=5000, help='Number of images for validation and test set')
-    parser.add_argument('--grayscale', action='store_true', help='Images will be stored in grayscale')
     args = parser.parse_args()
 
     main(args)

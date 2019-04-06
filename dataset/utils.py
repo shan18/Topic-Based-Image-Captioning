@@ -4,43 +4,43 @@ import random
 import numpy as np
 
 
-def load_images_data(img_ids, images_data, label):
+def load_images_data(img_ids, images_data):
     filenames = []
-    categories = []
     captions = []
     for img_id in img_ids:
         filenames.append(images_data[img_id]['file_name'])
-        categories.append(images_data[img_id]['categories'])
         captions.append(images_data[img_id]['captions'])
-    
-    if label == 'categories':
-        return (filenames, categories)
+
     return (filenames, captions)
 
 
-def load_coco(input_path, label, split_train=0.8, split_val=0.1):
+def load_coco(input_path, split):
     """ Load coco dataset """
     with open(input_path, 'rb') as file:
         coco_raw = pickle.load(file)
-    images_data = coco_raw['images_data']
-    category_id = coco_raw['category_id']
-    id_category = coco_raw['id_category']
+    images_data_train = coco_raw['images_data_train']
+    images_data_val = coco_raw['images_data_val']
     
     # split dataset
-    img_ids = list(images_data.keys())
-    split_idx_train = int(len(img_ids) * split_train)
-    split_idx_val = int(len(img_ids) * split_val)
+    img_ids = list(images_data_train.keys())
     random.shuffle(img_ids)
-    img_ids_train = img_ids[:split_idx_train]
-    img_ids_val = img_ids[split_idx_train:split_idx_train+split_idx_val]
-    img_ids_test = img_ids[split_idx_train+split_idx_val:]
+
+    img_ids_val = list(images_data_val.keys())[:split]
+    val_split_diff = split - len(img_ids_val)
+    if val_split_diff > 0:
+        for img_id in img_ids[:val_split_diff]:
+            img_ids_val.append(img_id)
+            images_data_val[img_id] = images_data_train[img_id]
+
+    img_ids_test = img_ids[val_split_diff:split + val_split_diff]
+    img_ids_train = img_ids[split + val_split_diff:]
     
     # load dataset
-    train_images, train_labels = load_images_data(img_ids_train, images_data, label)  # training dataset
-    val_images, val_labels = load_images_data(img_ids_val, images_data, label)  # validation dataset
-    test_images, test_labels = load_images_data(img_ids_test, images_data, label)  # test dataset
+    train_images, train_labels = load_images_data(img_ids_train, images_data_train)  # training dataset
+    val_images, val_labels = load_images_data(img_ids_val, images_data_val)  # validation dataset
+    test_images, test_labels = load_images_data(img_ids_test, images_data_train)  # test dataset
     
-    return (train_images, train_labels), (val_images, val_labels), (test_images, test_labels), category_id, id_category
+    return (img_ids_train, train_images, train_labels), (img_ids_val, val_images, val_labels), (img_ids_test, test_images, test_labels)
 
 
 def load_image(path, size=None, grayscale=False):

@@ -1,5 +1,5 @@
 from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Dense
+from tensorflow.keras.layers import Input, Dense
 
 
 def create_category_model(input_shape, output_shape):

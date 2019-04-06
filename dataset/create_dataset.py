@@ -103,7 +103,7 @@ def process_data(feature_model, data_type, img_ids, filenames, captions, save_pa
 
 
 def main(args):
-    train_data, val_data, test_data, _, _ = load_coco(
+    train_data, val_data, test_data = load_coco(
         args.raw, args.split
     )
     train_img_ids, train_images, train_captions = train_data  # Load training data

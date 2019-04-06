@@ -53,9 +53,9 @@ def mark_captions(captions_list, mark_start, mark_end):
 
 def flatten(captions_list):
     """ Flatten all the captions into a single list """
-    caption_list = [caption
-                    for caption_list in captions_list
-                    for caption in caption_list]
+    caption_list = [
+        caption for caption_list in captions_list for caption in caption_list
+    ]
     
     return caption_list
 
@@ -91,16 +91,7 @@ def create_sequences(tokenizer, max_length, topic_transfer_value, feature_transf
 def batch_generator(
     topic_transfer_values, feature_transfer_values, captions_list, tokenizer, num_images, batch_size, max_length, vocab_size
 ):
-    """
-    Generator function for creating random batches of training-data.
-    
-    It selects the data completely randomly for each
-    batch, corresponding to sampling of the training-set with
-    replacement. This means it is possible to sample the same
-    data multiple times within a single epoch - and it is also
-    possible that some data is not sampled at all within an epoch.
-    However, all the data should be unique within a single batch.
-    """
+    """ Generator function for creating random batches of training-data """
 
     # Infinite loop.
     while True:
@@ -192,8 +183,8 @@ def main(args):
     features_val, topics_val, captions_val = load_data(
         'val', args.data
     )
-    print('\nFeatures shape:', features_train.shape[1:])
-    print('Topics shape:', topics_train.shape[1:])
+    print('\nFeatures shape:', features_train.shape)
+    print('Topics shape:', topics_train.shape)
 
     # process captions
     mark_start = 'startseq'

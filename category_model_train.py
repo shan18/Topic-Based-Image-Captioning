@@ -14,7 +14,7 @@ from models.category_model import create_category_model
 def load_data(data_type, data_dir):
     # Path for the cache-file.
     feature_cache_path = os.path.join(
-        data_dir, 'feature_transfer_values_{}.pkl'.format(data_type)
+        data_dir, 'feature_transfer_values_{}.h5'.format(data_type)
     )
     topics_cache_path = os.path.join(
         data_dir, 'topics_{}.pkl'.format(data_type)
@@ -23,8 +23,8 @@ def load_data(data_type, data_dir):
     feature_path_exists = os.path.exists(feature_cache_path)
     topic_path_exists = os.path.exists(topics_cache_path)
     if feature_path_exists and topic_path_exists:
-        with open(feature_cache_path, mode='rb') as file:
-            feature_obj = pickle.load(file)
+        with h5py.File(feature_cache_path, 'r') as file:
+            feature_obj = file['feature_values']
         with open(topics_cache_path, mode='rb') as file:
             topics = pickle.load(file)
     else:

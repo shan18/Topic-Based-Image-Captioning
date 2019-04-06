@@ -1,6 +1,7 @@
 import os
 import argparse
 import pickle
+import h5py
 import random
 import numpy as np
 from tensorflow.keras import backend as K
@@ -12,7 +13,7 @@ from utils import load_coco, load_image, print_progress_bar
 from models.vgg19 import load_vgg19
 
 
-def process_images(feature_model, filenames, data_dir, batch_size):
+def process_images(feature_model, filenames, data_dir, save_file, batch_size):
     """
     Process all the given files in the given data_dir using the
     pre-trained feature-model as well as the feature-model and return
@@ -28,37 +29,36 @@ def process_images(feature_model, filenames, data_dir, batch_size):
     shape = (batch_size,) + img_size + (3,)
     image_batch = np.zeros(shape=shape, dtype=np.float32)
 
-    # Pre-allocate output-array for transfer-values.
-    feature_transfer_values = np.zeros(
-        shape=(num_images, K.int_shape(feature_model.output)[1]),
-        dtype=np.float32
-    )
-
     start_index = 0
     print_progress_bar(start_index, num_images)  # Initial call to print 0% progress
-
-    while start_index < num_images:
-        end_index = start_index + batch_size
-        if end_index > num_images:
-            end_index = num_images
-        current_batch_size = end_index - start_index
-
-        # Load all the images in the batch.
-        for i, filename in enumerate(filenames[start_index:end_index]):
-            path = os.path.join(data_dir, filename)
-            img = load_image(path, size=img_size)
-            image_batch[i] = img
-
-        # Use the pre-trained models to process the image.
-        feature_transfer_values_batch = feature_model.predict(
-            image_batch[0:current_batch_size]
+    
+    with h5py.File(save_file, 'w') as data_file:
+        # Pre-allocate output-array for transfer-values.
+        feature_transfer_values = data_file.create_dataset(
+            'feature_values', shape=(num_images, K.int_shape(feature_model.output)[1]), dtype=np.float32
         )
+        while start_index < num_images:
+            end_index = start_index + batch_size
+            if end_index > num_images:
+                end_index = num_images
+            current_batch_size = end_index - start_index
 
-        # Save the transfer-values in the pre-allocated array.
-        feature_transfer_values[start_index:end_index] = feature_transfer_values_batch[0:current_batch_size]
+            # Load all the images in the batch.
+            for i, filename in enumerate(filenames[start_index:end_index]):
+                path = os.path.join(data_dir, filename)
+                img = load_image(path, size=img_size)
+                image_batch[i] = img
 
-        start_index = end_index
-        print_progress_bar(start_index, num_images)  # Update Progress Bar
+            # Use the pre-trained models to process the image.
+            feature_transfer_values_batch = feature_model.predict(
+                image_batch[0:current_batch_size]
+            )
+
+            # Save the transfer-values in the pre-allocated array.
+            feature_transfer_values[start_index:end_index] = feature_transfer_values_batch[0:current_batch_size]
+
+            start_index = end_index
+            print_progress_bar(start_index, num_images)  # Update Progress Bar
 
     print()
     return feature_transfer_values
@@ -70,7 +70,7 @@ def process_data(feature_model, data_type, img_ids, filenames, captions, save_pa
     # Path for the cache-file.
     cache_path_dir = save_path
     feature_cache_path = os.path.join(
-        cache_path_dir, 'feature_transfer_values_{}.pkl'.format(data_type)
+        cache_path_dir, 'feature_transfer_values_{}.h5'.format(data_type)
     )
     images_id_cache_path = os.path.join(
         cache_path_dir, 'images_id_{}.pkl'.format(data_type)
@@ -89,10 +89,8 @@ def process_data(feature_model, data_type, img_ids, filenames, captions, save_pa
 
     # Process all images and save their transfer-values
     feature_obj = process_images(
-        feature_model, filenames, data_dir, batch_size
+        feature_model, filenames, data_dir, feature_cache_path, batch_size
     )
-    with open(feature_cache_path, mode='wb') as file:
-        pickle.dump(feature_obj, file)
     with open(images_id_cache_path, mode='wb') as file:
         pickle.dump(img_ids, file)
     with open(images_cache_path, mode='wb') as file:

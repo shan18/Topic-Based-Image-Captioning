@@ -11,7 +11,6 @@ from tensorflow.keras.applications import VGG19
 
 def load_vgg19():
     model = VGG19(include_top=True, weights='imagenet')
-    conv_layer = model.get_layer('fc2')
+    conv_layer = model.get_layer('flatten')
     conv_model = Model(inputs=model.input, outputs=conv_layer.output)
     return conv_model
-

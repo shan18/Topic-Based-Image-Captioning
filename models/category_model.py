@@ -1,14 +1,20 @@
 from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Input, Dense
+from tensorflow.keras.layers import Input, Dense, Dropout, BatchNormalization
 
 
-def create_category_model(input_shape, output_shape):
+def create_category_model(input_shape, output_dim):
     """ Use pre-trained vgg19 model and add a custom classification layer """
 
     feature_input = Input(
         shape=input_shape, name='feature_input'
     )
-    topic_output = Dense(output_shape, activation='sigmoid')(feature_input)  # Add the final classification layer
+    feature_net = Dense(4096, activation='relu')(feature_input)
+    feature_net = Dropout(0.5)(feature_net)
+    feature_net = BatchNormalization()(feature_net)
+    feature_net = Dense(1000, activation='relu')(feature_input)
+    feature_net = Dropout(0.5)(feature_net)
+    feature_net = BatchNormalization()(feature_net)
+    topic_output = Dense(output_dim, activation='sigmoid')(feature_net)  # Add the final classification layer
 
     # Define model
     model = Model(

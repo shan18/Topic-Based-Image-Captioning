@@ -192,8 +192,8 @@ def main(args):
     features_val, topics_val, captions_val = load_data(
         'val', args.data
     )
-    print('\nFeatures shape:', features_train.shape[1:])
-    print('Topics shape:', topics_train.shape[1:])
+    print('\nFeatures shape:', features_train.shape)
+    print('Topics shape:', topics_train.shape)
 
     # process captions
     mark_start = 'startseq'

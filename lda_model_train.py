@@ -66,10 +66,6 @@ def main(args):
         'val', args.data
     )
 
-    print('\nDataset Size:')
-    print('Training:', len(captions_train))
-    print('Validation:', len(captions_val))
-
     # Create data
     lda_data_train = create_lda_data(captions_train)
     lda_data_val = create_lda_data(captions_val)

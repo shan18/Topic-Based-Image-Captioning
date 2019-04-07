@@ -100,7 +100,10 @@ if __name__ == '__main__':
         help='Path to the simplified raw coco file'
     )
     parser.add_argument('--batch_size', default=128, type=int, help='Batch Size')
-    parser.add_argument('--epochs', default=100, type=int, help='Epochs')
+    parser.add_argument('--epochs', default=40, type=int, help='Epochs')
+    parser.add_argument('--early_stop', default=15, type=int, help='Patience for early stopping callback')
+    parser.add_argument('--lr_decay', default=0.1, type=float, help='Learning rate decay factor')
+    parser.add_argument('--min_lr', default=0.0001, type=float, help='Lower bound on learning rate')
     args = parser.parse_args()
 
     main(args)

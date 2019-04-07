@@ -6,7 +6,7 @@ import h5py
 import numpy as np
 
 from tensorflow.keras import backend as K
-from tensorflow.keras.callbacks import ModelCheckpoint, TensorBoard, EarlyStopping, ReduceLROnPlateau
+from tensorflow.keras.callbacks import ModelCheckpoint, TensorBoard, ReduceLROnPlateau
 
 from models.category_model import create_category_model
 
@@ -50,9 +50,8 @@ def train(model, train_data, val_data, args):
         histogram_freq=0,
         write_graph=True
     )
-    callback_early_stop = EarlyStopping(monitor='val_loss', patience=args.early_stop, verbose=1)
-    callback_reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=args.lr_decay, patience=4, verbose=1, min_lr=args.min_lr)
-    callbacks = [callback_checkpoint, callback_tensorboard, callback_early_stop, callback_reduce_lr]
+    callback_reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=args.lr_decay, patience=2, verbose=1, min_lr=args.min_lr)
+    callbacks = [callback_checkpoint, callback_tensorboard, callback_reduce_lr]
 
     # train model
     model.fit(
@@ -61,7 +60,8 @@ def train(model, train_data, val_data, args):
         batch_size=args.batch_size,
         epochs=args.epochs,
         callbacks=callbacks,
-        validation_data=val_data
+        validation_data=val_data,
+        shuffle='batch'
     )
 
     print('\n\nModel training finished.')
@@ -102,11 +102,10 @@ if __name__ == '__main__':
         default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dataset', 'coco_raw.pickle'),
         help='Path to the simplified raw coco file'
     )
-    parser.add_argument('--batch_size', default=128, type=int, help='Batch Size')
-    parser.add_argument('--epochs', default=40, type=int, help='Epochs')
-    parser.add_argument('--early_stop', default=15, type=int, help='Patience for early stopping callback')
+    parser.add_argument('--batch_size', default=4096, type=int, help='Batch Size')
+    parser.add_argument('--epochs', default=15, type=int, help='Epochs')
     parser.add_argument('--lr_decay', default=0.1, type=float, help='Learning rate decay factor')
-    parser.add_argument('--min_lr', default=0.0001, type=float, help='Lower bound on learning rate')
+    parser.add_argument('--min_lr', default=0.00001, type=float, help='Lower bound on learning rate')
     args = parser.parse_args()
 
     main(args)

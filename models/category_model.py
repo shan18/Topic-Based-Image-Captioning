@@ -23,7 +23,7 @@ def create_category_model(input_shape, output_dim):
     )
 
     # Compile the model
-    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['binary_accuracy'])
+    model.compile(loss='binary_crossentropy', optimizer='adam')
 
     return model
 

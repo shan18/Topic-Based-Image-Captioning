@@ -11,7 +11,7 @@ def create_category_model(input_shape, output_dim):
     feature_net = Dense(4096, activation='relu')(feature_input)
     feature_net = Dropout(0.5)(feature_net)
     feature_net = BatchNormalization()(feature_net)
-    feature_net = Dense(1000, activation='relu')(feature_input)
+    feature_net = Dense(1000, activation='relu')(feature_net)
     feature_net = Dropout(0.5)(feature_net)
     feature_net = BatchNormalization()(feature_net)
     topic_output = Dense(output_dim, activation='sigmoid')(feature_net)  # Add the final classification layer
@@ -28,10 +28,10 @@ def create_category_model(input_shape, output_dim):
     return model
 
 
-def load_category_model(input_shape, output_shape, weights_path):
+def load_category_model(input_shape, output_dim, weights_path):
     """ Load topic model with pre-trained weights """
 
-    model = create_category_model(input_shape, output_shape)
+    model = create_category_model(input_shape, output_dim)
 
     try:
         model.load_weights(weights_path)

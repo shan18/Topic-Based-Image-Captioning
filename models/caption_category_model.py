@@ -2,8 +2,6 @@ from tensorflow.keras import backend as K
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Dense, Add
 
-from models.vgg19 import load_vgg19
-from models.category_model import load_category_model
 from models.encoder import image_encoder, caption_encoder
 
 

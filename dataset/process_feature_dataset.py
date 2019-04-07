@@ -44,35 +44,39 @@ def get_topic_shape(data_type, data_dir):
 
 
 def process_data(feature_model, vgg_features, save_dir, data_type, batch_size):
-    save_file = os.path.join(save_dir, 'features_{}.h5'.format(data_type))
+    save_file = os.path.join(save_dir, 'features_{}.pkl'.format(data_type))
     num_images = vgg_features.shape[0]
+
+    # Pre-allocate output-array for transfer-values.
+    feature_values = np.zeros(
+        shape=(num_images, K.int_shape(feature_model.output)[1]),
+        dtype=np.float32
+    )
 
     start_index = 0
     print_progress_bar(start_index, num_images)  # Initial call to print 0% progress
     
-    with h5py.File(save_file, 'w') as data_file:
-        # Pre-allocate output-array for transfer-values.
-        feature_values = data_file.create_dataset(
-            'feature_values', shape=(num_images, K.int_shape(feature_model.output)[1]), dtype=np.float32, chunks=True
+    while start_index < num_images:
+        end_index = start_index + batch_size
+        if end_index > num_images:
+            end_index = num_images
+        current_batch_size = end_index - start_index
+
+        # Use the pre-trained models to process the image.
+        feature_values_batch = feature_model.predict(
+            vgg_features[0:current_batch_size]
         )
-        while start_index < num_images:
-            end_index = start_index + batch_size
-            if end_index > num_images:
-                end_index = num_images
-            current_batch_size = end_index - start_index
 
-            # Use the pre-trained models to process the image.
-            feature_values_batch = feature_model.predict(
-                vgg_features[0:current_batch_size]
-            )
+        # Save the transfer-values in the pre-allocated array.
+        feature_values[start_index:end_index] = feature_values_batch[0:current_batch_size]
 
-            # Save the transfer-values in the pre-allocated array.
-            feature_values[start_index:end_index] = feature_values_batch[0:current_batch_size]
-
-            start_index = end_index
-            print_progress_bar(start_index, num_images)  # Update Progress Bar
+        start_index = end_index
+        print_progress_bar(start_index, num_images)  # Update Progress Bar
 
     print()
+    with open(save_file, mode='wb') as file:
+        pickle.dump(feature_values, file)
+    print('Saved {} feature data.'.format(data_type))
 
 
 def main(args):

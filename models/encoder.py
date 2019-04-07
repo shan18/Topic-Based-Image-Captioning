@@ -39,4 +39,3 @@ def caption_encoder(
     caption_model_output = caption_lstm(net, initial_state=topic_lstm_states) # Connect the caption LSTM layer
 
     return topic_input, caption_input, caption_model_output
-

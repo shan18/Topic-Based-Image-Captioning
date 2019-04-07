@@ -32,4 +32,3 @@ def create_model(topic_shape, feature_shape, word_index, glove_file, mark_start,
     model.compile(loss='categorical_crossentropy', optimizer='adam')
 
     return model
-

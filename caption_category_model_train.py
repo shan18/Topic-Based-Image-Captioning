@@ -19,7 +19,7 @@ def load_data(data_type, data_dir):
         data_dir, 'topic_transfer_values_{}.pkl'.format(data_type)
     )
     feature_cache_path = os.path.join(
-        data_dir, 'feature_transfer_values_{}.pkl'.format(data_type)
+        data_dir, 'vgg_features_{}.pkl'.format(data_type)
     )
     captions_cache_path = os.path.join(
         data_dir, 'captions_{}.pkl'.format(data_type)

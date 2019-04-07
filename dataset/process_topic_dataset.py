@@ -61,7 +61,6 @@ def process_images(feature_model, filenames, data_dir, save_file, batch_size):
             print_progress_bar(start_index, num_images)  # Update Progress Bar
 
     print()
-    return feature_transfer_values
 
 
 def process_data(feature_model, data_type, img_ids, filenames, captions, save_path, data_dir, batch_size):
@@ -70,7 +69,7 @@ def process_data(feature_model, data_type, img_ids, filenames, captions, save_pa
     # Path for the cache-file.
     cache_path_dir = save_path
     feature_cache_path = os.path.join(
-        cache_path_dir, 'feature_transfer_values_{}.h5'.format(data_type)
+        cache_path_dir, 'vgg_features_{}.h5'.format(data_type)
     )
     images_id_cache_path = os.path.join(
         cache_path_dir, 'images_id_{}.pkl'.format(data_type)
@@ -88,7 +87,7 @@ def process_data(feature_model, data_type, img_ids, filenames, captions, save_pa
         print('Directory created:', cache_path_dir)
 
     # Process all images and save their transfer-values
-    feature_obj = process_images(
+    process_images(
         feature_model, filenames, data_dir, feature_cache_path, batch_size
     )
     with open(images_id_cache_path, mode='wb') as file:
@@ -150,4 +149,3 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     main(args)
-

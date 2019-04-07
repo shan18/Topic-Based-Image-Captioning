@@ -16,7 +16,7 @@ from models.caption_lda_model import create_model
 def load_data(data_type, data_dir):
     # Path for the cache-file.
     feature_cache_path = os.path.join(
-        data_dir, 'feature_transfer_values_{}.pkl'.format(data_type)
+        data_dir, 'vgg_features_{}.pkl'.format(data_type)
     )
     topics_cache_path = os.path.join(
         data_dir, 'topics_{}.pkl'.format(data_type)

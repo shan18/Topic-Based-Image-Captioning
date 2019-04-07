@@ -35,7 +35,7 @@ def process_images(feature_model, filenames, data_dir, save_file, batch_size):
     with h5py.File(save_file, 'w') as data_file:
         # Pre-allocate output-array for transfer-values.
         feature_transfer_values = data_file.create_dataset(
-            'feature_values', shape=(num_images, K.int_shape(feature_model.output)[1]), dtype=np.float32
+            'feature_values', shape=(num_images, K.int_shape(feature_model.output)[1]), dtype=np.float32, chunks=True
         )
         while start_index < num_images:
             end_index = start_index + batch_size

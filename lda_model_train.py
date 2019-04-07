@@ -66,6 +66,10 @@ def main(args):
         'val', args.data
     )
 
+    print('\nDataset Size:')
+    print('Training:', len(captions_train))
+    print('Validation:', len(captions_val))
+
     # Create data
     lda_data_train = create_lda_data(captions_train)
     lda_data_val = create_lda_data(captions_val)
@@ -86,7 +90,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '--data',
-        default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dataset', 'processed_lda_data'),
+        default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dataset', 'processed_data'),
         help='Directory containing the processed dataset'
     )
     parser.add_argument('--topics', default=80, type=int, help='Number of topics in the data')

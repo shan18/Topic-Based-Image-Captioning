@@ -20,18 +20,17 @@ def load_data(data_type, data_dir):
         data_dir, 'topics_{}.pkl'.format(data_type)
     )
 
-    feature_path_exists = os.path.exists(feature_cache_path)
-    topic_path_exists = os.path.exists(topics_cache_path)
-    if feature_path_exists and topic_path_exists:
-        with h5py.File(feature_cache_path, 'r') as file:
-            feature_obj = file['feature_values']
+    if os.path.exists(topics_cache_path):
         with open(topics_cache_path, mode='rb') as file:
             topics = pickle.load(file)
+    if os.path.exists(feature_cache_path):
+        feature_file = h5py.File(feature_cache_path, 'r')
+        feature_obj = feature_file['feature_values']
     else:
         sys.exit('processed {} data does not exist.'.format(data_type))
 
     print('{} data loaded from cache-file.'.format(data_type))
-    return feature_obj, topics
+    return feature_file, feature_obj, topics
 
 
 def train(model, train_data, val_data, args):
@@ -70,10 +69,10 @@ def train(model, train_data, val_data, args):
 
 def main(args):
     # Load pre-processed data
-    features_train, topics_train = load_data(
+    feature_file_train, features_train, topics_train = load_data(
         'train', args.data
     )
-    features_val, topics_val = load_data(
+    feature_file_val, features_val, topics_val = load_data(
         'val', args.data
     )
     print('\nFeatures shape:', features_train.shape)
@@ -85,6 +84,10 @@ def main(args):
 
     # Train model
     train(model, (features_train, topics_train), (features_val, topics_val), args)
+
+    # Close the dataset file
+    feature_file_train.close()
+    feature_file_val.close()
 
 
 if __name__ == '__main__':

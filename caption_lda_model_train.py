@@ -7,10 +7,10 @@ import numpy as np
 from tensorflow.keras import backend as K
 from tensorflow.keras.callbacks import ModelCheckpoint, TensorBoard, EarlyStopping, ReduceLROnPlateau
 from tensorflow.keras.utils import to_categorical
-from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 
 from models.caption_lda_model import create_model
+from dataset.process_texts import flatten, mark_captions, create_tokenizer
 
 
 def load_data(data_type, data_dir):
@@ -40,32 +40,6 @@ def load_data(data_type, data_dir):
 
     print('{} data loaded from cache-file.'.format(data_type))
     return feature_obj, topics, captions
-
-
-def mark_captions(captions_list, mark_start, mark_end):
-    """ Mark all the captions with the start and the end marker """
-    captions_marked = [
-        [' '.join([mark_start, caption, mark_end]) for caption in captions] for captions in captions_list
-    ]
-    
-    return captions_marked
-
-
-def flatten(captions_list):
-    """ Flatten all the captions into a single list """
-    caption_list = [
-        caption for caption_list in captions_list for caption in caption_list
-    ]
-    
-    return caption_list
-
-
-def create_tokenizer(captions_marked):
-    captions_flat = flatten(captions_marked)
-    tokenizer = Tokenizer()
-    tokenizer.fit_on_texts(captions_flat)
-    vocab_size = len(tokenizer.word_index) + 1
-    return tokenizer, vocab_size
 
 
 def create_sequences(tokenizer, max_length, topic_transfer_value, feature_transfer_value, caption, vocab_size):

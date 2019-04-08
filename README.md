@@ -12,6 +12,14 @@
 6. To process the dataset for training the caption model  
    `$ python dataset/create_caption_category_dataset.py`
 
+## NLTK Setup
+
+```[python]
+import nltk
+nltk.download('stopwords')
+nltk.download('punkt')
+```
+
 ## Training the Topic Category Model
 
 `$ python category_model_train.py`

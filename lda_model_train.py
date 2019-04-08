@@ -5,7 +5,7 @@ import pickle
 import lda
 import numpy as np
 
-from caption_category_model_train import flatten, create_tokenizer
+from dataset.process_texts import remove_stopwords, apply_stemming, create_text_matrix
 
 
 def load_data(data_type, data_dir):
@@ -25,25 +25,6 @@ def load_data(data_type, data_dir):
     return captions
 
 
-def convert_to_sequences(captions_list, tokenizer):
-    sequences_list = []
-    for captions in captions_list:
-        sequences_list.append(tokenizer.texts_to_sequences(captions))
-    return sequences_list
-
-
-def create_lda_data(captions):
-    tokenizer, vocab_size = create_tokenizer(captions)
-    sequences = convert_to_sequences(captions, tokenizer)
-
-    lda_data = np.zeros((len(captions), vocab_size)).astype(np.int32)
-    for i in range(len(sequences)):
-        sequence_flat = flatten(sequences[i])
-        for j in range(len(sequence_flat)):
-            lda_data[i][sequence_flat[j]] += 1
-    return lda_data
-
-
 def create_and_train(lda_data, num_topics, iterations):
     model = lda.LDA(n_topics=num_topics, n_iter=iterations, random_state=1)
     model.fit(lda_data)
@@ -57,6 +38,13 @@ def save_topics(topics, data_dir, data_type):
     print('Data Saved.')
 
 
+def create_lda_data(captions, num_words):
+    captions = remove_stopwords(captions)
+    captions = apply_stemming(captions)
+    lda_data = create_text_matrix(captions, num_words)
+    return lda_data
+
+
 def main(args):
     # Load pre-processed data
     captions_train = load_data(
@@ -67,8 +55,8 @@ def main(args):
     )
 
     # Create data
-    lda_data_train = create_lda_data(captions_train)
-    lda_data_val = create_lda_data(captions_val)
+    lda_data_train = create_lda_data(captions_train, args.num_words)
+    lda_data_val = create_lda_data(captions_val, args.num_words)
 
     # Create and train model
     model = create_and_train(lda_data_train, args.topics, args.iterations)
@@ -89,9 +77,9 @@ if __name__ == '__main__':
         default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dataset', 'processed_data'),
         help='Directory containing the processed dataset'
     )
+    parser.add_argument('--num_words', default=5000, type=int, help='Number of words to keep in vocabulary')
     parser.add_argument('--topics', default=80, type=int, help='Number of topics in the data')
     parser.add_argument('--iterations', default=2000, type=int, help='Number of iterations for fitting the model')
     args = parser.parse_args()
 
     main(args)
-

@@ -4,6 +4,8 @@ from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
 from tensorflow.keras.preprocessing.text import Tokenizer
 
+from utils import print_progress_bar
+
 
 def flatten(captions_list):
     """ Flatten all the captions into a single list """
@@ -37,6 +39,10 @@ def create_tokenizer(captions_marked, num_words=None):
 
 
 def remove_stopwords(captions_list):
+    print('\nRemoving Stopwords...')
+    start_index = 0
+    print_progress_bar(start_index, len(captions_list))  # Initial call to print 0% progress
+
     stop_words = set(stopwords.words('english'))
     stop_words.update(list('!"#$%&()*+,-./:;<=>?@[\\]^_`{|}~\t\n'))
     for captions_idx in range(len(captions_list)):
@@ -44,16 +50,30 @@ def remove_stopwords(captions_list):
             captions_list[captions_idx][caption_idx] = ' '.join([
                 i for i in wordpunct_tokenize(captions_list[captions_idx][caption_idx].lower()) if i not in stop_words
             ])
+
+        start_index += 1
+        print_progress_bar(start_index, len(captions_list))  # Update Progress Bar
+
+    print('Done.')
     return captions_list
 
 
 def apply_stemming(captions_list):
+    print('\Applying Stemming...')
+    start_index = 0
+    print_progress_bar(start_index, len(captions_list))  # Initial call to print 0% progress
+
     porter = PorterStemmer()
     for captions_idx in range(len(captions_list)):
         for caption_idx in range(len(captions_list[captions_idx])):
             captions_list[captions_idx][caption_idx] = ' '.join([
                 porter.stem(i) for i in wordpunct_tokenize(captions_list[captions_idx][caption_idx].lower())
             ])
+
+        start_index += 1
+        print_progress_bar(start_index, len(captions_list))  # Update Progress Bar
+
+    print('Done.')
     return captions_list
 
 

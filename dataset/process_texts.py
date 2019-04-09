@@ -4,7 +4,7 @@ from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
 from tensorflow.keras.preprocessing.text import Tokenizer
 
-from utils import print_progress_bar
+from .utils import print_progress_bar
 
 
 def flatten(captions_list):

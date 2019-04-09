@@ -165,7 +165,7 @@ def main(args):
     mark_end = 'endseq'
     captions_train_marked = mark_captions(captions_train, mark_start, mark_end)  # training
     captions_val_marked = mark_captions(captions_val, mark_start, mark_end)  # validation
-    tokenizer, vocab_size = create_tokenizer(captions_train_marked)
+    tokenizer, vocab_size = create_tokenizer(captions_train_marked, args.vocab)
 
     # training-dataset generator
     generator_train = batch_generator(
@@ -199,7 +199,7 @@ def main(args):
         args.glove,
         mark_start,
         mark_end,
-        vocab_size,
+        len(tokenizer.word_index),
         args.max_tokens
     )
 
@@ -228,6 +228,7 @@ if __name__ == '__main__':
     )
     parser.add_argument('--batch_size', default=128, type=int, help='Number of images per batch')
     parser.add_argument('--epochs', default=30, type=int, help='Epochs')
+    parser.add_argument('--vocab', default=None, help='Number of words to consider for the vocabulary')
     parser.add_argument('--early_stop', default=12, type=int, help='Patience for early stopping callback')
     parser.add_argument('--lr_decay', default=0.1, type=float, help='Learning rate decay factor')
     parser.add_argument('--min_lr', default=0.0001, type=float, help='Lower bound on learning rate')

@@ -48,7 +48,9 @@ def remove_stopwords(captions_list):
     for captions_idx in range(len(captions_list)):
         for caption_idx in range(len(captions_list[captions_idx])):
             captions_list[captions_idx][caption_idx] = ' '.join([
-                i for i in wordpunct_tokenize(captions_list[captions_idx][caption_idx].lower()) if i not in stop_words
+                i for i in wordpunct_tokenize(
+                    captions_list[captions_idx][caption_idx].lower()
+                ) if i not in stop_words and len(i) != 1
             ])
 
         start_index += 1

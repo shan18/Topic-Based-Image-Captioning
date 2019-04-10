@@ -199,7 +199,7 @@ def main(args):
         args.glove,
         mark_start,
         mark_end,
-        len(tokenizer.word_index),
+        len(tokenizer.word_index) + 1,
         args.max_tokens
     )
 

@@ -20,19 +20,11 @@ nltk.download('stopwords')
 nltk.download('punkt')
 ```
 
-## Training the Topic Category Model
+## Exec List
 
-`$ python category_model_train.py`
-
-## Training Caption Model
-
-`$ python caption_category_model_train.py`
-
-## Evaluating the generated captions
-
-Captions can be generated using two modes:
-
-- **argmax**: Generating captions using words with the maximum probability
-- **beam**: Generating captions using beam search
-
-`$ python evaluation/caption_category_model_eval.py --model_weights <path_to_the_trained_caption_model_weights> --mode <mode_name>`
+1. parse_coco.py
+2. process_topic_dataset.py
+3. lda_model_train.py
+4. topic_model_train.py
+5. process_feature_dataset.py
+6. caption_model_train.py

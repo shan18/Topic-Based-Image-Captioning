@@ -23,8 +23,8 @@ nltk.download('punkt')
 ## Exec List
 
 1. parse_coco.py
-2. process_topic_dataset.py
+2. process_dataset.py
 3. lda_model_train.py
 4. topic_model_train.py
-5. process_feature_dataset.py
+5. process_caption_dataset.py
 6. caption_model_train.py

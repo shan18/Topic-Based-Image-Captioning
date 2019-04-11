@@ -10,7 +10,7 @@ from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 
 from models.caption_model import create_model
-from dataset.process_texts import flatten, mark_captions, create_tokenizer
+from dataset.process_texts import mark_captions, clean_captions, caption_to_sequence, build_vocabulary_with_word_frequency
 
 
 def load_data(data_type, data_dir):
@@ -42,11 +42,18 @@ def load_data(data_type, data_dir):
     return feature_obj, topics, captions
 
 
-def create_sequences(tokenizer, max_length, topic_transfer_value, feature_transfer_value, caption, vocab_size):
+def process_captions(captions_list, mark_start, mark_end, freq_threshold):
+    captions_list_marked = mark_captions(captions_list, mark_start, mark_end)
+    captions_list_marked = clean_captions(captions_list_marked)
+    vocab, word_idx, _ = build_vocabulary_with_word_frequency(captions_list_marked, freq_threshold)
+    return captions_list_marked, word_idx, len(vocab)
+
+
+def create_sequences(word_idx, max_length, topic_transfer_value, feature_transfer_value, caption, vocab_size):
     """ Create sequences of topic_values, feature_values, input sequence and output sequence for an image """
     topic_values, feature_values = [], []
     input_captions, output_captions = [], []
-    integer_sequence = tokenizer.texts_to_sequences([caption])[0]  # encode the sequence
+    integer_sequence = caption_to_sequence(caption, word_idx)  # encode the sequence
     
     for idx in range(1, len(integer_sequence)):
         in_seq, out_seq = integer_sequence[:idx], integer_sequence[idx]  # split into input and output pair
@@ -63,7 +70,7 @@ def create_sequences(tokenizer, max_length, topic_transfer_value, feature_transf
 
 
 def batch_generator(
-    topic_transfer_values, feature_transfer_values, captions_list, tokenizer, num_images, batch_size, max_length, vocab_size
+    topic_transfer_values, feature_transfer_values, captions_list, word_idx, num_images, batch_size, max_length, vocab_size
 ):
     """ Generator function for creating random batches of training-data """
 
@@ -79,7 +86,7 @@ def batch_generator(
         input_captions, output_captions = [], []
         for idx in indices:
             topic_value, feature_value, input_caption, output_caption = create_sequences(
-                tokenizer,
+                word_idx,
                 max_length,
                 topic_transfer_values[idx],
                 feature_transfer_values[idx],
@@ -163,16 +170,18 @@ def main(args):
     # process captions
     mark_start = 'startseq'
     mark_end = 'endseq'
-    captions_train_marked = mark_captions(captions_train, mark_start, mark_end)  # training
+    captions_train_marked, word_idx, vocab_size = process_captions(  # training
+        captions_train, mark_start, mark_end, args.word_freq
+    ) 
     captions_val_marked = mark_captions(captions_val, mark_start, mark_end)  # validation
-    tokenizer, vocab_size = create_tokenizer(captions_train_marked, args.vocab)
+    captions_val_marked = clean_captions(captions_val_marked)
 
     # training-dataset generator
     generator_train = batch_generator(
         topics_train,
         features_train,
         captions_train_marked,
-        tokenizer,
+        word_idx,
         len(captions_train),
         args.batch_size,
         args.max_tokens,
@@ -184,7 +193,7 @@ def main(args):
         topics_val,
         features_val,
         captions_val_marked,
-        tokenizer,
+        word_idx,
         len(captions_val),
         args.batch_size,
         args.max_tokens,
@@ -195,11 +204,11 @@ def main(args):
     model = create_model(
         topics_train.shape[1:],
         features_train.shape[1:],
-        tokenizer.word_index,
+        word_idx,
         args.glove,
         mark_start,
         mark_end,
-        len(tokenizer.word_index) + 1,
+        vocab_size,
         args.max_tokens
     )
 
@@ -228,7 +237,7 @@ if __name__ == '__main__':
     )
     parser.add_argument('--batch_size', default=128, type=int, help='Number of images per batch')
     parser.add_argument('--epochs', default=30, type=int, help='Epochs')
-    parser.add_argument('--vocab', default=None, type=int, help='Number of words to consider for the vocabulary')
+    parser.add_argument('--word_freq', default=10, type=int, help='Min frequency of words to consider for the vocabulary')
     parser.add_argument('--early_stop', default=25, type=int, help='Patience for early stopping callback')
     parser.add_argument('--lr_decay', default=0.2, type=float, help='Learning rate decay factor')
     parser.add_argument('--min_lr', default=0.00001, type=float, help='Lower bound on learning rate')

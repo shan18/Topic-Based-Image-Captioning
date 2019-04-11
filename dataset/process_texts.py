@@ -3,7 +3,6 @@ import numpy as np
 from nltk import wordpunct_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
-from tensorflow.keras.preprocessing.text import Tokenizer
 
 from .utils import print_progress_bar
 
@@ -11,7 +10,7 @@ from .utils import print_progress_bar
 def flatten(captions_list):
     """ Flatten all the captions into a single list """
     caption_list = [
-        caption for caption_list in captions_list for caption in caption_list
+        caption for captions in captions_list for caption in captions
     ]
     
     return caption_list
@@ -24,19 +23,6 @@ def mark_captions(captions_list, mark_start, mark_end):
     ]
     
     return captions_marked
-
-
-def create_tokenizer(captions_marked, num_words=None):
-    captions_flat = flatten(captions_marked)
-    tokenizer = Tokenizer(num_words=num_words)
-    tokenizer.fit_on_texts(captions_flat)
-    
-    if num_words is None:
-        vocab_size = len(tokenizer.word_index) + 1
-    else:
-        vocab_size = num_words
-    
-    return tokenizer, vocab_size
 
 
 def remove_stopwords(captions_list):
@@ -62,7 +48,7 @@ def remove_stopwords(captions_list):
 
 
 def apply_stemming(captions_list):
-    print('\Applying Stemming...')
+    print('\nApplying Stemming...')
     start_index = 0
     print_progress_bar(start_index, len(captions_list))  # Initial call to print 0% progress
 
@@ -78,25 +64,6 @@ def apply_stemming(captions_list):
 
     print('Done.')
     return captions_list
-
-
-def convert_to_sequences(captions_list, tokenizer):
-    sequences_list = []
-    for captions in captions_list:
-        sequences_list.append(tokenizer.texts_to_sequences(captions))
-    return sequences_list
-
-
-def create_text_matrix(captions, num_words=None):
-    tokenizer, vocab_size = create_tokenizer(captions, num_words)
-    sequences = convert_to_sequences(captions, tokenizer)
-
-    text_matrix = np.zeros((len(captions), vocab_size)).astype(np.int32)
-    for i in range(len(sequences)):
-        sequence_flat = flatten(sequences[i])
-        for j in range(len(sequence_flat)):
-            text_matrix[i][sequence_flat[j]] += 1
-    return text_matrix
 
 
 def clean_captions(captions_list):
@@ -124,6 +91,21 @@ def clean_captions(captions_list):
     return captions_list
 
 
+def caption_to_sequence(caption, word_index):
+    """ Converting a caption to an integer sequence """
+    return [word_index[word] for word in caption.split() if word in word_index]
+
+
+def captions_to_sequences(captions, word_index):
+    """ Converting a list of captions to a list of sequences """
+    return [caption_to_sequence(caption, word_index) for caption in captions]
+
+
+def convert_to_sequences(captions_list, word_index):
+    """ Convert a list of list of captions to a list of list of sequences """
+    return [captions_to_sequences(captions, word_index) for captions in captions_list]
+
+
 def calculate_word_frequency(captions_list):
     """ Returns a dictionary containing each word and its frequency """
     captions = flatten(captions_list)
@@ -145,7 +127,7 @@ def create_word_idx_mapping(word_list):
     return word_idx, idx_word
 
 
-def build_vocabulary_with_word_frequency(captions_list, freq_threshold):
+def build_vocabulary_with_frequency_threshold(captions_list, freq_threshold):
     """ Create vocabulary with words having frequency greater than the threshold. """
     word_freq = calculate_word_frequency(captions_list)
     vocab = [word for word in word_freq if word_freq[word] > freq_threshold]
@@ -153,10 +135,24 @@ def build_vocabulary_with_word_frequency(captions_list, freq_threshold):
     return vocab, word_idx, idx_word
 
 
-def build_vocabulary_with_word_count(captions_list, num_words):
+def build_vocabulary_with_num_words(captions_list, num_words):
     """ Create vocabulary with words occuring in most frequent num_words list """
     word_freq = calculate_word_frequency(captions_list)
-    word_list = sorted(list(word_freq.items()), key=lambda x: (x[1], x[0]), reverse=True)[:num_words]
+    word_list = sorted(list(word_freq.items()), key=lambda x: (x[1], x[0]), reverse=True)
+    if not num_words is None:
+        word_list = word_list[:num_words]
     vocab = [x[0] for x in word_list]
     word_idx, idx_word = create_word_idx_mapping(vocab)
     return vocab, word_idx, idx_word
+
+
+def create_text_matrix(captions_list, num_words=None):
+    vocab, word_idx, _ = build_vocabulary_with_num_words(captions_list, num_words)
+    sequences = convert_to_sequences(captions_list, word_idx)
+
+    text_matrix = np.zeros((len(captions_list), len(vocab))).astype(np.int32)
+    for i in range(len(sequences)):
+        sequence_flat = flatten(sequences[i])
+        for j in range(len(sequence_flat)):
+            text_matrix[i][sequence_flat[j] - 1] += 1
+    return text_matrix

@@ -10,7 +10,7 @@ from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 
 from models.caption_model import create_model
-from dataset.process_texts import mark_captions, clean_captions, caption_to_sequence, build_vocabulary_with_word_frequency
+from dataset.process_texts import mark_captions, clean_captions, caption_to_sequence, build_vocabulary_with_frequency_threshold
 
 
 def load_data(data_type, data_dir):
@@ -45,7 +45,7 @@ def load_data(data_type, data_dir):
 def process_captions(captions_list, mark_start, mark_end, freq_threshold):
     captions_list_marked = mark_captions(captions_list, mark_start, mark_end)
     captions_list_marked = clean_captions(captions_list_marked)
-    vocab, word_idx, _ = build_vocabulary_with_word_frequency(captions_list_marked, freq_threshold)
+    vocab, word_idx, _ = build_vocabulary_with_frequency_threshold(captions_list_marked, freq_threshold)
     return captions_list_marked, word_idx, len(vocab)
 
 

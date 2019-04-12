@@ -46,7 +46,7 @@ def process_captions(captions_list, mark_start, mark_end, freq_threshold):
     captions_list_marked = mark_captions(captions_list, mark_start, mark_end)
     captions_list_marked = clean_captions(captions_list_marked)
     vocab, word_idx, _ = build_vocabulary_with_frequency_threshold(captions_list_marked, freq_threshold)
-    return captions_list_marked, word_idx, len(vocab)
+    return captions_list_marked, word_idx, len(vocab) + 1
 
 
 def create_sequences(word_idx, max_length, topic_transfer_value, feature_transfer_value, caption, vocab_size):

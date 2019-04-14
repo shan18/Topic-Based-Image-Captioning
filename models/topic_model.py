@@ -46,7 +46,7 @@ def load_feature_model(input_shape, output_dim, weights_path):
     """ Load last dense layer of topic model with pre-trained weights """
 
     model = load_topic_model(input_shape, output_dim, weights_path)
-    dense_layer = model.get_layer('batch_normalization_1')
+    dense_layer = model.get_layer('batch_normalization_v1_1')
     feature_model = Model(inputs=model.input, outputs=dense_layer.output)
         
     return feature_model

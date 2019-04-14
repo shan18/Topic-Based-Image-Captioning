@@ -75,6 +75,7 @@ def main(args):
     feature_file_val, features_val, topics_val = load_data(
         'val', args.data
     )
+    features_val_arr = np.array(features_val)
     print('\nFeatures shape:', features_train.shape)
     print('Topics shape:', topics_train.shape)
 
@@ -83,7 +84,7 @@ def main(args):
     print(model.summary())
 
     # Train model
-    train(model, (features_train, topics_train), (features_val, topics_val), args)
+    train(model, (features_train, topics_train), (features_val_arr, topics_val), args)
 
     # Close the dataset file
     feature_file_train.close()

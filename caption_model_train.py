@@ -13,10 +13,39 @@ from models.caption_model import create_model
 from dataset.process_texts import mark_captions, clean_captions, caption_to_sequence, build_vocabulary_with_frequency_threshold
 
 
+# def load_data(data_type, data_dir):
+#     # Path for the cache-file.
+#     feature_cache_path = os.path.join(
+#         data_dir, 'features_{}.pkl'.format(data_type)
+#     )
+#     topics_cache_path = os.path.join(
+#         data_dir, 'topics_{}.pkl'.format(data_type)
+#     )
+#     captions_cache_path = os.path.join(
+#         data_dir, 'captions_{}.pkl'.format(data_type)
+#     )
+
+#     feature_path_exists = os.path.exists(feature_cache_path)
+#     topic_path_exists = os.path.exists(topics_cache_path)
+#     caption_path_exists = os.path.exists(captions_cache_path)
+#     if feature_path_exists and topic_path_exists and caption_path_exists:
+#         with open(feature_cache_path, mode='rb') as file:
+#             feature_obj = pickle.load(file)
+#         with open(topics_cache_path, mode='rb') as file:
+#             topics = pickle.load(file)
+#         with open(captions_cache_path, mode='rb') as file:
+#             captions = pickle.load(file)
+#     else:
+#         sys.exit('processed {} data does not exist.'.format(data_type))
+
+#     print('{} data loaded from cache-file.'.format(data_type))
+#     return feature_obj, topics, captions
+
+
 def load_data(data_type, data_dir):
     # Path for the cache-file.
     feature_cache_path = os.path.join(
-        data_dir, 'features_{}.pkl'.format(data_type)
+        data_dir, 'vgg_features_{}.h5'.format(data_type)
     )
     topics_cache_path = os.path.join(
         data_dir, 'topics_{}.pkl'.format(data_type)
@@ -28,18 +57,20 @@ def load_data(data_type, data_dir):
     feature_path_exists = os.path.exists(feature_cache_path)
     topic_path_exists = os.path.exists(topics_cache_path)
     caption_path_exists = os.path.exists(captions_cache_path)
-    if feature_path_exists and topic_path_exists and caption_path_exists:
-        with open(feature_cache_path, mode='rb') as file:
-            feature_obj = pickle.load(file)
+    if topic_path_exists and caption_path_exists:
         with open(topics_cache_path, mode='rb') as file:
             topics = pickle.load(file)
         with open(captions_cache_path, mode='rb') as file:
             captions = pickle.load(file)
     else:
         sys.exit('processed {} data does not exist.'.format(data_type))
+    
+    if feature_path_exists:
+        feature_file = h5py.File(feature_cache_path, 'r')
+        feature_obj = feature_file['feature_values']
 
     print('{} data loaded from cache-file.'.format(data_type))
-    return feature_obj, topics, captions
+    return feature_file, feature_obj, topics, captions
 
 
 def process_captions(captions_list, mark_start, mark_end, freq_threshold):
@@ -158,12 +189,18 @@ def train(model, generator_train, generator_val, captions_train, captions_val, a
 
 def main(args):
     # Load pre-processed data
-    features_train, topics_train, captions_train = load_data(
+    features_file_train, features_train, topics_train, captions_train = load_data(
         'train', args.data
     )
-    features_val, topics_val, captions_val = load_data(
+    features_file_val, features_val, topics_val, captions_val = load_data(
         'val', args.data
     )
+    # features_train, topics_train, captions_train = load_data(
+    #     'train', args.data
+    # )
+    # features_val, topics_val, captions_val = load_data(
+    #     'val', args.data
+    # )
     print('\nFeatures shape:', features_train.shape)
     print('Topics shape:', topics_train.shape)
 
@@ -236,8 +273,8 @@ if __name__ == '__main__':
         default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dataset', 'glove.6B.300d.txt'),
         help='Path to pre-trained GloVe vectors'
     )
-    parser.add_argument('--state_size', default=1024, type=int, help='State size of LSTM')
-    parser.add_argument('--batch_size', default=128, type=int, help='Number of images per batch')
+    parser.add_argument('--state_size', default=512, type=int, help='State size of LSTM')
+    parser.add_argument('--batch_size', default=256, type=int, help='Number of images per batch')
     parser.add_argument('--epochs', default=30, type=int, help='Epochs')
     parser.add_argument('--word_freq', default=10, type=int, help='Min frequency of words to consider for the vocabulary')
     parser.add_argument('--early_stop', default=25, type=int, help='Patience for early stopping callback')

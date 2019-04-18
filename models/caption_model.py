@@ -6,9 +6,9 @@ from models.vgg19 import load_vgg19
 from models.encoder import image_encoder, caption_encoder
 
 
-def create_model(topic_shape, feature_shape, word_index, glove_file, mark_start, mark_end, vocab_size, max_tokens=16):
-    state_size = 256
-
+def create_model(
+    topic_shape, feature_shape, state_size, word_index, glove_file, mark_start, mark_end, vocab_size, max_tokens=16
+):
     # Encode Images
     feature_input, image_model_output = image_encoder(feature_shape, state_size)
 

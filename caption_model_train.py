@@ -204,6 +204,7 @@ def main(args):
     model = create_model(
         topics_train.shape[1:],
         features_train.shape[1:],
+        args.state_size,
         word_idx,
         args.glove,
         mark_start,
@@ -235,6 +236,7 @@ if __name__ == '__main__':
         default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dataset', 'glove.6B.300d.txt'),
         help='Path to pre-trained GloVe vectors'
     )
+    parser.add_argument('--state_size', default=1024, type=int, help='State size of LSTM')
     parser.add_argument('--batch_size', default=128, type=int, help='Number of images per batch')
     parser.add_argument('--epochs', default=30, type=int, help='Epochs')
     parser.add_argument('--word_freq', default=10, type=int, help='Min frequency of words to consider for the vocabulary')

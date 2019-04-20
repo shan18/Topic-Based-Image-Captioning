@@ -174,17 +174,20 @@ def train(model, generator_train, generator_val, captions_train, captions_val, a
     callback_reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=args.lr_decay, patience=4, verbose=1, min_lr=args.min_lr)
     callbacks = [callback_checkpoint, callback_tensorboard, callback_early_stop, callback_reduce_lr]
 
-    # train model
-    model.fit_generator(
-        generator=generator_train,
-        steps_per_epoch=calculate_steps_per_epoch(captions_train, args.batch_size),
-        epochs=args.epochs,
-        callbacks=callbacks,
-        validation_data=generator_val,
-        validation_steps=calculate_steps_per_epoch(captions_val, args.batch_size)
-    )
-
-    print('\n\nModel training finished.')
+    try:
+        # train model
+        model.fit_generator(
+            generator=generator_train,
+            steps_per_epoch=calculate_steps_per_epoch(captions_train, args.batch_size),
+            epochs=args.epochs,
+            callbacks=callbacks,
+            validation_data=generator_val,
+            validation_steps=calculate_steps_per_epoch(captions_val, args.batch_size)
+        )
+        print('\n\nModel training finished.')
+    except KeyboardInterrupt:
+        model.save('weights/model_temp_save.hdf5')
+        print('\nModel saved.')
 
 
 def main(args):
@@ -259,6 +262,10 @@ def main(args):
         captions_val_marked,
         args
     )
+
+    # close files
+    features_file_train.close()
+    features_file_val.close()
 
 
 if __name__ == '__main__':

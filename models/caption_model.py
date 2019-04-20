@@ -1,6 +1,6 @@
 from tensorflow.keras import backend as K
 from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Dense, Add, LSTM, BatchNormalization, Dropout
+from tensorflow.keras.layers import Dense, Add, LSTM, BatchNormalization, Dropout, Reshape
 
 from models.vgg19 import load_vgg19
 from models.encoder import image_encoder, caption_encoder
@@ -19,6 +19,7 @@ def create_model(
     
     # merge encoders and create the decoder
     merge_net = Add()([image_model_output, caption_model_output])
+    merge_net = Reshape(target_shape=(K.int_shape(merge_net)[1:] + (1,)))(merge_net)
     merge_net = LSTM(state_size, name='merge_lstm')(merge_net)
     merge_net = Dropout(0.5)(merge_net)
     merge_net = BatchNormalization(name='merge_batch_normalize')(merge_net)

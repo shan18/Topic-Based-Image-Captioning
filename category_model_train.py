@@ -77,6 +77,8 @@ def main(args):
     feature_file_val, features_val, topics_val = load_data(
         'val', args.data
     )
+    topics_train = np.array(topics_train)
+    topics_val = np.array(topics_val)
     features_val_arr = np.array(features_val)
     print('\nFeatures shape:', features_train.shape)
     print('Topics shape:', topics_train.shape)

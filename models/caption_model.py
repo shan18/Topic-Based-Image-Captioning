@@ -2,7 +2,7 @@ from tensorflow.keras import backend as K
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Dense, Add, LSTM, BatchNormalization, Dropout, Reshape
 
-from models.vgg19 import load_vgg19
+from models.vgg19 import load_vgg19_flatten
 from models.encoder import image_encoder, caption_encoder
 
 

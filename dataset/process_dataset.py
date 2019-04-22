@@ -10,7 +10,17 @@ import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from utils import load_coco, load_image, print_progress_bar
-from models.vgg19 import load_vgg19
+from models.vgg19 import load_vgg19_flatten, load_vgg19_dense
+
+
+def create_multi_label_categories_vector(categories_list, category_id):
+    categories_encoded = []
+    for categories in categories_list:
+        encode = [0] * len(category_id)
+        for category in categories:
+            encode[category_id[category]] = 1
+        categories_encoded.append(encode)
+    return categories_encoded
 
 
 def process_images(feature_model, filenames, data_dir, save_file, batch_size):
@@ -63,7 +73,7 @@ def process_images(feature_model, filenames, data_dir, save_file, batch_size):
     print()
 
 
-def process_data(feature_model, data_type, img_ids, filenames, captions, save_path, data_dir, batch_size):
+def process_data(feature_model, data_type, img_ids, filenames, categories, captions, category_id, save_path, data_dir, batch_size):
     print('Processing {0} images in {1}-set ...'.format(len(filenames), data_type))
 
     # Path for the cache-file.
@@ -80,6 +90,9 @@ def process_data(feature_model, data_type, img_ids, filenames, captions, save_pa
     captions_cache_path = os.path.join(
         cache_path_dir, 'captions_{}.pkl'.format(data_type)
     )
+    categories_cache_path = os.path.join(
+        cache_path_dir, 'categories_{}.pkl'.format(data_type)
+    )
     
     # Check if directory to store processed data exists
     if not os.path.exists(cache_path_dir):
@@ -94,21 +107,27 @@ def process_data(feature_model, data_type, img_ids, filenames, captions, save_pa
         pickle.dump(img_ids, file)
     with open(images_cache_path, mode='wb') as file:
         pickle.dump(filenames, file)
+    with open(categories_cache_path, mode='wb') as file:
+        categories_vector = create_multi_label_categories_vector(categories, category_id)
+        pickle.dump(categories_vector, file)
     with open(captions_cache_path, mode='wb') as file:
         pickle.dump(captions, file)
     print('{} data saved to cache-file.'.format(data_type))
 
 
 def main(args):
-    train_data, val_data, test_data = load_coco(
+    train_data, val_data, test_data, category_id, _ = load_coco(
         args.raw, args.split
     )
-    train_img_ids, train_images, train_captions = train_data  # Load training data
-    val_img_ids, val_images, val_captions = val_data  # Load validation data
-    test_img_ids, test_images, test_captions = test_data  # Load test data
+    train_img_ids, train_images, train_categories, train_captions = train_data  # Load training data
+    val_img_ids, val_images, val_categories, val_captions = val_data  # Load validation data
+    test_img_ids, test_images, test_categories, test_captions = test_data  # Load test data
     
     # Load pre-trained image models
-    feature_model = load_vgg19()
+    if args.vgg_mode == 'flat': 
+        feature_model = load_vgg19_flatten()
+    elif args.vgg_mode == 'dense':
+        feature_model = load_vgg19_dense()
 
     print('\nDataset sizes:')
     print('Training:', len(train_images))
@@ -117,13 +136,13 @@ def main(args):
 
     # Generate and save dataset
     process_data(  # training data
-        feature_model, 'train', train_img_ids, train_images, train_captions, args.save, args.root, args.batch_size
+        feature_model, 'train', train_img_ids, train_images, train_categories, train_captions, category_id, args.save, args.root, args.batch_size
     )
     process_data(  # validation data
-        feature_model, 'val', val_img_ids, val_images, val_captions, args.save, args.root, args.batch_size
+        feature_model, 'val', val_img_ids, val_images, val_categories, val_captions, category_id, args.save, args.root, args.batch_size
     )
     process_data(  # test data
-        feature_model, 'test', test_img_ids, test_images, test_captions, args.save, args.root, args.batch_size
+        feature_model, 'test', test_img_ids, test_images, test_categories, test_captions, category_id, args.save, args.root, args.batch_size
     )
 
 
@@ -136,6 +155,10 @@ if __name__ == '__main__':
     parser.add_argument(
         '--raw', default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'coco_raw.pickle'),
         help='Path to the simplified raw coco file'
+    )
+    parser.add_argument(
+        '--vgg_mode', required=True, choices=['dense', 'flat'],
+        help='Layer of VGG19 to extract features from'
     )
     parser.add_argument(
         '--save', default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'processed_data'),

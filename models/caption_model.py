@@ -19,10 +19,11 @@ def create_model(
     
     # merge encoders and create the decoder
     merge_net = Add()([image_model_output, caption_model_output])
-    merge_net = Reshape(target_shape=(K.int_shape(merge_net)[1:] + (1,)))(merge_net)
-    merge_net = LSTM(state_size, name='merge_lstm')(merge_net)
-    merge_net = Dropout(0.5)(merge_net)
-    merge_net = BatchNormalization(name='merge_batch_normalize')(merge_net)
+    merge_net = Dense(state_size, activation='relu')(merge_net)
+    # merge_net = Reshape(target_shape=(K.int_shape(merge_net)[1:] + (1,)))(merge_net)
+    # merge_net = LSTM(state_size, name='merge_lstm')(merge_net)
+    # merge_net = Dropout(0.5)(merge_net)
+    # merge_net = BatchNormalization(name='merge_batch_normalize')(merge_net)
     outputs = Dense(vocab_size, activation='softmax', name='caption_output')(merge_net)
 
     # Define model

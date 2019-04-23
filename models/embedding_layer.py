@@ -37,12 +37,12 @@ def create_embedding_layer(word_to_index, glove_file, mark_start, mark_end, num_
     
     embedding_matrix = np.zeros((vocabulary_length, embedding_dimensions))  # initialize with zeros
     for word, index in word_to_index.items():
-        if word in word_to_vec_map:
-            embedding_matrix[index, :] = word_to_vec_map[word]
-        # try:
+        # if word in word_to_vec_map:
         #     embedding_matrix[index, :] = word_to_vec_map[word]
-        # except KeyError:
-        #     embedding_matrix[index, :] = word_to_vec_map['unk']
+        try:
+            embedding_matrix[index, :] = word_to_vec_map[word]
+        except KeyError:
+            embedding_matrix[index, :] = word_to_vec_map['unk']
     
     # we don't want the embeddings to be updated, thus trainable parameter is set to False
     decoder_embedding = Embedding(

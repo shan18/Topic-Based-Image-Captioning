@@ -1,6 +1,6 @@
 import os
 import sys
-# import h5py
+import h5py
 import argparse
 import pickle
 import numpy as np

@@ -31,7 +31,7 @@ def load_data(data_type, data_dir):
 def get_topic_shape(data_type, data_dir):
     # Path for the cache-file.
     categories_cache_path = os.path.join(
-        cache_path_dir, 'categories_{}.pkl'.format(data_type)
+        data_dir, 'categories_{}.pkl'.format(data_type)
     )
 
     if os.path.exists(categories_cache_path):

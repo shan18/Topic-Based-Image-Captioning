@@ -146,7 +146,7 @@ if __name__ == '__main__':
     )
     parser.add_argument(
         '--save',
-        default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dataset', 'processed_data'),
+        default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'processed_data'),
         help='Directory containing the processed dataset'
     )
     parser.add_argument('--batch_size', default=256, type=int, help='Batch Size')

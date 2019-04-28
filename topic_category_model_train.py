@@ -6,7 +6,7 @@ import h5py
 import numpy as np
 
 from tensorflow.keras import backend as K
-from tensorflow.keras.callbacks import ModelCheckpoint, TensorBoard, EarlyStopping
+from tensorflow.keras.callbacks import ModelCheckpoint, TensorBoard, EarlyStopping, ReduceLROnPlateau
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 from models.topic_category_model import create_category_model
@@ -55,8 +55,9 @@ def train_model(model, train_data, val_data, args):
         verbose=1,
         save_best_only=True
     )
+    callback_reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=args.lr_decay, patience=4, verbose=1, min_lr=args.min_lr)
     # early_stop = EarlyStopping(monitor='val_loss', patience=3, verbose=1)
-    callbacks = [callback_tensorboard, callback_checkpoint]
+    callbacks = [callback_tensorboard, callback_checkpoint, callback_reduce_lr]
 
     try:
         model.fit(
@@ -118,6 +119,8 @@ if __name__ == '__main__':
     )
     parser.add_argument('--batch_size', default=128, type=int, help='Batch Size')
     parser.add_argument('--epochs', default=40, type=int, help='Epochs')
+    parser.add_argument('--lr_decay', default=0.1, type=float, help='Learning rate decay factor')
+    parser.add_argument('--min_lr', default=0.0001, type=float, help='Lower bound on learning rate')
     args = parser.parse_args()
 
     main(args)

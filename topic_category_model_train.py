@@ -113,7 +113,7 @@ if __name__ == '__main__':
         default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dataset', 'coco_raw.pickle'),
         help='Path to the simplified raw coco file'
     )
-    parser.add_argument('--batch_size', default=64, type=int, help='Batch Size')
+    parser.add_argument('--batch_size', default=128, type=int, help='Batch Size')
     parser.add_argument('--epochs', default=100, type=int, help='Epochs')
     args = parser.parse_args()
 

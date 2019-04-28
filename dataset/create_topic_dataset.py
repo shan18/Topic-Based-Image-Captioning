@@ -111,9 +111,9 @@ def main(args):
     train_data, val_data, test_data = load_split_data(
         args.raw, args.split
     )
-    train_img_ids, train_images, train_categories, train_captions = train_data
-    val_img_ids, val_images, val_categories, val_captions = val_data
-    test_img_ids, test_images, test_categories, test_captions = test_data
+    _, train_images, train_categories, _ = train_data
+    _, val_images, val_categories, _ = val_data
+    _, test_images, test_categories, _ = test_data
 
     print('\nDataset sizes:')
     print('Training:', len(train_images))
@@ -149,6 +149,7 @@ if __name__ == '__main__':
         default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dataset', 'processed_data'),
         help='Directory containing the processed dataset'
     )
+    parser.add_argument('--batch_size', default=256, type=int, help='Batch Size')
     parser.add_argument('--split', default=5000, help='Number of images for validation and test set')
     args = parser.parse_args()
 

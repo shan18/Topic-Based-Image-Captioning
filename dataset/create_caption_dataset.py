@@ -1,6 +1,7 @@
 import os
 import argparse
 import pickle
+import h5py
 import numpy as np
 from tensorflow.keras import backend as K
 
@@ -13,9 +14,26 @@ from models.vgg19 import load_vgg19
 from models.topic_category_model import load_category_model
 
 
-def load_pre_trained_model(weights_path, num_classes):
+def load_input_shape(data_type, data_dir):
+    # Path for the cache-file.
+    feature_cache_path = os.path.join(
+        data_dir, 'vgg_features_{}.h5'.format(data_type)
+    )
+
+    if os.path.exists(feature_cache_path):
+        feature_file = h5py.File(feature_cache_path, 'r')
+        feature_obj = feature_file['feature_values']
+    else:
+        sys.exit('processed {} data does not exist.'.format(data_type))
+    
+    input_shape = feature_obj.shape[1:]
+    feature_file.close()
+    return input_shape
+
+
+def load_pre_trained_model(input_shape, output_dim, weights_path):
     print('Loading pre-trained models...')
-    topic_model = load_category_model(num_classes, weights_path)
+    topic_model = load_category_model(input_shape, output_dim, weights_path)
     feature_model = load_vgg19()
     print('Done.\n')
     return topic_model, feature_model
@@ -141,7 +159,9 @@ def main(args):
     print('\nNum Topics:', num_classes)
     
     # Load pre-trained image models
-    topic_model, feature_model = load_pre_trained_model(args.image_weights, num_classes)
+    topic_model, feature_model = load_pre_trained_model(
+        load_input_shape('train', args.data), num_classes, args.image_weights
+    )
 
     # Generate and save dataset
     process_data(  # training data
@@ -164,6 +184,11 @@ if __name__ == '__main__':
     parser.add_argument(
         '--raw', default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'coco_raw.pickle'),
         help='Path to the simplified raw coco file'
+    )
+    parser.add_argument(
+        '--data',
+        default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dataset', 'processed_data'),
+        help='Directory containing the processed dataset'
     )
     parser.add_argument(
         '--image_weights', required=True,

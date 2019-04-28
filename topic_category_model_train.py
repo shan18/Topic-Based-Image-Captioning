@@ -81,6 +81,8 @@ def main(args):
         'val', args.data
     )
     features_val_arr = np.array(features_val)
+    topics_train = np.array(topics_train)
+    topics_val = np.array(topics_val)
     print('\nFeatures shape:', features_train.shape)
     print('Topics shape:', topics_train.shape)
 
@@ -90,7 +92,7 @@ def main(args):
     id_category = coco_raw['id_category']
 
     # Create model
-    model = create_category_model(topics_train.shape[1])
+    model = create_category_model(features_train.shape[1:], topics_train.shape[1])
     print(model.summary())
 
     # Train model
@@ -114,7 +116,7 @@ if __name__ == '__main__':
         help='Path to the simplified raw coco file'
     )
     parser.add_argument('--batch_size', default=128, type=int, help='Batch Size')
-    parser.add_argument('--epochs', default=100, type=int, help='Epochs')
+    parser.add_argument('--epochs', default=40, type=int, help='Epochs')
     args = parser.parse_args()
 
     main(args)

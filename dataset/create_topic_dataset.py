@@ -144,6 +144,11 @@ if __name__ == '__main__':
         '--raw', default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'coco_raw.pickle'),
         help='Path to the simplified raw coco file'
     )
+    parser.add_argument(
+        '--save',
+        default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dataset', 'processed_data'),
+        help='Directory containing the processed dataset'
+    )
     parser.add_argument('--split', default=5000, help='Number of images for validation and test set')
     args = parser.parse_args()
 

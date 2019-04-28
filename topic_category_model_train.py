@@ -14,19 +14,18 @@ from models.topic_category_model import create_category_model
 def load_data(data_type, data_dir):
     # Path for the cache-file.
     feature_cache_path = os.path.join(
-        data_dir, '{}_images.h5'.format(data_type)
+        data_dir, 'vgg_features_{}.h5'.format(data_type)
     )
     topics_cache_path = os.path.join(
-        data_dir, '{}_categories.h5'.format(data_type)
+        data_dir, 'categories_{}.pkl'.format(data_type)
     )
 
     if os.path.exists(topics_cache_path):
-        topics_file = h5py.File(topics_cache_path, 'r')
-        topics = topics_file['categories'][:]
-        topics_file.close()
+        with open(topics_cache_path, mode='rb') as file:
+            topics = pickle.load(file)
     if os.path.exists(feature_cache_path):
         feature_file = h5py.File(feature_cache_path, 'r')
-        feature_obj = feature_file['images']
+        feature_obj = feature_file['feature_values']
     else:
         sys.exit('processed {} data does not exist.'.format(data_type))
 
@@ -36,7 +35,6 @@ def load_data(data_type, data_dir):
 
 def train_model(model, train_data, val_data, args):
     train_images, train_categories = train_data
-    val_images, val_categories = val_data
 
     # set weights directory and checkpoint path
     weights_dir = 'weights'
@@ -66,8 +64,10 @@ def train_model(model, train_data, val_data, args):
             batch_size=args.batch_size,
             epochs=args.epochs,
             callbacks=callbacks,
-            validation_data=(val_images, val_categories)
+            validation_data=val_data,
+            shuffle='batch'
         )
+        print('\n\nModel training finished.')
     except KeyboardInterrupt:
         print('Stopped.')
 
@@ -81,7 +81,6 @@ def main(args):
         'val', args.data
     )
     features_val_arr = np.array(features_val)
-    feature_file_val.close()
     print('\nFeatures shape:', features_train.shape)
     print('Topics shape:', topics_train.shape)
 
@@ -91,13 +90,15 @@ def main(args):
     id_category = coco_raw['id_category']
 
     # Create model
-    model = create_category_model(len(id_category))
+    model = create_category_model(topics_train.shape[1])
     print(model.summary())
 
     # Train model
     train_model(model, (features_train, topics_train), (features_val_arr, topics_val), args)
 
+    # Close the dataset file
     feature_file_train.close()
+    feature_file_val.close()
 
 
 if __name__ == '__main__':

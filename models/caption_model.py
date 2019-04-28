@@ -105,9 +105,7 @@ def create_caption_encoder(topic_model, tokenizer, glove_file, mark_start, mark_
     return topic_input, caption_input, caption_model_output
 
 
-def create_model(image_model_weights, num_topics, tokenizer, glove_file, mark_start, mark_end, vocab_size, max_tokens=16):
-    state_size = 256
-
+def create_model(image_model_weights, num_topics, state_size, tokenizer, glove_file, mark_start, mark_end, vocab_size, max_tokens=16):
     # Load pre-trained image model
     topic_model, feature_model = load_pre_trained_image_model(image_model_weights, num_topics)
 

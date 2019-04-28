@@ -17,15 +17,14 @@ from models.caption_model import create_model
 def load_data(data_type, data_dir):
     # Path for the cache-file.
     topic_cache_path = os.path.join(
-        data_dir, 'topic_transfer_values_{}.pkl'.format(data_type)
+        data_dir, 'topics_{}.pkl'.format(data_type)
     )
     feature_cache_path = os.path.join(
-        data_dir, 'feature_transfer_values_{}.pkl'.format(data_type)
+        data_dir, 'features_{}.pkl'.format(data_type)
     )
     captions_cache_path = os.path.join(
         data_dir, 'captions_{}.pkl'.format(data_type)
     )
-
 
     topic_path_exists = os.path.exists(topic_cache_path)
     feature_path_exists = os.path.exists(feature_cache_path)
@@ -232,6 +231,7 @@ def main(args):
     model = create_model(
         args.image_weights,
         num_classes,
+        args.state_size,
         tokenizer,
         args.glove,
         mark_start,
@@ -270,6 +270,7 @@ if __name__ == '__main__':
     )
     parser.add_argument('--batch_size', default=128, type=int, help='Number of images per batch')
     parser.add_argument('--epochs', default=30, type=int, help='Epochs')
+    parser.add_argument('--state_size', default=256, type=int, help='State size of LSTM')
     parser.add_argument('--early_stop', default=12, type=int, help='Patience for early stopping callback')
     parser.add_argument('--lr_decay', default=0.1, type=float, help='Learning rate decay factor')
     parser.add_argument('--min_lr', default=0.0001, type=float, help='Lower bound on learning rate')

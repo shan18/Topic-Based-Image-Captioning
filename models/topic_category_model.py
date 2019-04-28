@@ -1,5 +1,5 @@
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense
+from tensorflow.keras.models import Sequential, Model
+from tensorflow.keras.layers import Dense, Input
 from tensorflow.keras.optimizers import Adam
 
 from models.vgg19 import load_vgg19

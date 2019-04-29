@@ -49,7 +49,7 @@ def process_images(topic_model, feature_model, filenames, args):
     """
     
     num_images = len(filenames)
-    img_size = K.int_shape(topic_model.input)[1:3]  # Expected input size of the pre-trained network
+    img_size = K.int_shape(feature_model.input)[1:3]  # Expected input size of the pre-trained network
 
     # Pre-allocate input-batch-array for images
     shape = (args.batch_size,) + img_size + (3,)
@@ -81,11 +81,11 @@ def process_images(topic_model, feature_model, filenames, args):
             image_batch[i] = img
 
         # Use the pre-trained models to process the image
-        topic_transfer_values_batch = topic_model.predict(
-            image_batch[0:current_batch_size]
-        )
         feature_transfer_values_batch = feature_model.predict(
             image_batch[0:current_batch_size]
+        )
+        topic_transfer_values_batch = topic_model.predict(
+            feature_transfer_values_batch
         )
 
         # Save the transfer-values in the pre-allocated arrays
@@ -187,7 +187,7 @@ if __name__ == '__main__':
     )
     parser.add_argument(
         '--data',
-        default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dataset', 'processed_data'),
+        default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'processed_data'),
         help='Directory containing the processed dataset'
     )
     parser.add_argument(

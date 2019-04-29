@@ -7,8 +7,8 @@ from models.vgg19 import load_vgg19
 from models.topic_category_model import load_category_model
 
 
-def load_pre_trained_image_model(weights_path, num_classes):
-    topic_model = load_category_model(num_classes, weights_path)
+def load_pre_trained_image_model(weights_path, input_shape, num_classes):
+    topic_model = load_category_model(input_shape, num_classes, weights_path)
     feature_model = load_vgg19()
     print('Done.\n')
     return topic_model, feature_model
@@ -105,9 +105,9 @@ def create_caption_encoder(topic_model, tokenizer, glove_file, mark_start, mark_
     return topic_input, caption_input, caption_model_output
 
 
-def create_model(image_model_weights, num_topics, state_size, tokenizer, glove_file, mark_start, mark_end, vocab_size, max_tokens=16):
+def create_model(image_model_weights, feature_input_shape, num_topics, state_size, tokenizer, glove_file, mark_start, mark_end, vocab_size, max_tokens=16):
     # Load pre-trained image model
-    topic_model, feature_model = load_pre_trained_image_model(image_model_weights, num_topics)
+    topic_model, feature_model = load_pre_trained_image_model(image_model_weights, feature_input_shape, num_topics)
 
     # Encode Images
     feature_input, image_model_output = create_image_encoder(feature_model, state_size)

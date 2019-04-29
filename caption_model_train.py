@@ -17,7 +17,7 @@ from models.caption_model import create_model
 def load_data(data_type, data_dir):
     # Path for the cache-file.
     topic_cache_path = os.path.join(
-        data_dir, 'topics_{}.pkl'.format(data_type)
+        data_dir, 'categories_{}.pkl'.format(data_type)
     )
     feature_cache_path = os.path.join(
         data_dir, 'features_{}.pkl'.format(data_type)
@@ -230,6 +230,7 @@ def main(args):
     # Create Model
     model = create_model(
         args.image_weights,
+        feature_transfer_values_train.shape[1:],
         num_classes,
         args.state_size,
         tokenizer,

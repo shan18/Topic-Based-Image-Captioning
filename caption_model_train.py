@@ -40,7 +40,7 @@ def load_data(data_type, data_dir):
     else:
         sys.exit('File containing the processed data does not exist.')
 
-    return topic_obj, feature_obj, captions
+    return np.array(topic_obj), feature_obj, captions
 
 
 def mark_captions(captions_list, mark_start, mark_end):

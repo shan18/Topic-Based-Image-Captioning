@@ -11,7 +11,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from caption_model_train import mark_captions, create_tokenizer
 from models.caption_model import create_model
 from dataset.utils import print_progress_bar
-from .predictions import generate_predictions
+from predictions import generate_predictions
 
 
 def load_data(data_type, data_dir):
@@ -156,10 +156,7 @@ if __name__ == '__main__':
         help='Path to pre-trained GloVe vectors'
     )
     parser.add_argument(
-        '--image_weights',
-        default=os.path.join(os.path.dirname(
-            os.path.dirname(os.path.abspath(__file__))
-        ), 'weights', 'topic_category_model.keras'),
+        '--image_weights', required=True,
         help='Path to weights of the topic model'
     )
     parser.add_argument(

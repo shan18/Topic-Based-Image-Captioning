@@ -19,7 +19,7 @@ def create_image_encoder(feature_model, state_size):
     feature_input = Input(
         shape=K.int_shape(feature_model.output)[1:], name='feature_input'
     )
-    feature_net = Dropout(0.5)(feature_input)
+    feature_net = Dropout(0.2)(feature_input)
     image_model_output = Dense(state_size, activation='relu', name='image_model_output')(feature_net)
     return feature_input, image_model_output
 
@@ -99,7 +99,7 @@ def create_caption_encoder(topic_model, tokenizer, glove_file, mark_start, mark_
     topic_lstm_states = [initial_state_h0, initial_state_c0]
     net = caption_input  # Start the decoder-network with its input-layer
     net = caption_embedding(net)  # Connect the embedding-layer
-    net = Dropout(0.5)(net)
+    net = Dropout(0.2)(net)
     caption_model_output = caption_lstm(net, initial_state=topic_lstm_states) # Connect the caption LSTM layer
 
     return topic_input, caption_input, caption_model_output

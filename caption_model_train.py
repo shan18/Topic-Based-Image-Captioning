@@ -11,6 +11,9 @@ from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 
 from dataset.utils import load_coco
+from dataset.process_texts import (
+    mark_captions, clean_captions, caption_to_sequence, build_vocabulary_with_frequency_threshold
+)
 from models.caption_model import create_model
 
 
@@ -43,37 +46,18 @@ def load_data(data_type, data_dir):
     return np.array(topic_obj), feature_obj, captions
 
 
-def mark_captions(captions_list, mark_start, mark_end):
-    """ Mark all the captions with the start and the end marker """
-    captions_marked = [
-        [' '.join([mark_start, caption, mark_end]) for caption in captions] for captions in captions_list
-    ]
-    
-    return captions_marked
+def process_captions(captions_list, mark_start, mark_end, freq_threshold):
+    captions_list_marked = mark_captions(captions_list, mark_start, mark_end)
+    captions_list_marked = clean_captions(captions_list_marked)
+    vocab, word_idx, _ = build_vocabulary_with_frequency_threshold(captions_list_marked, freq_threshold)
+    return captions_list_marked, word_idx, len(vocab) + 1
 
 
-def flatten(captions_list):
-    """ Flatten all the captions into a single list """
-    caption_list = [caption
-                    for caption_list in captions_list
-                    for caption in caption_list]
-    
-    return caption_list
-
-
-def create_tokenizer(captions_marked):
-    captions_flat = flatten(captions_marked)
-    tokenizer = Tokenizer()
-    tokenizer.fit_on_texts(captions_flat)
-    vocab_size = len(tokenizer.word_index) + 1
-    return tokenizer, vocab_size
-
-
-def create_sequences(tokenizer, max_length, topic_transfer_value, feature_transfer_value, caption, vocab_size):
+def create_sequences(word_idx, max_length, topic_transfer_value, feature_transfer_value, caption, vocab_size):
     """ Create sequences of topic_values, feature_values, input sequence and output sequence for an image """
     topic_values, feature_values = [], []
     input_captions, output_captions = [], []
-    integer_sequence = tokenizer.texts_to_sequences([caption])[0]  # encode the sequence
+    integer_sequence = caption_to_sequence(caption, word_idx)  # encode the sequence
     
     for idx in range(1, len(integer_sequence)):
         in_seq, out_seq = integer_sequence[:idx], integer_sequence[idx]  # split into input and output pair
@@ -89,7 +73,9 @@ def create_sequences(tokenizer, max_length, topic_transfer_value, feature_transf
     return topic_values, feature_values, input_captions, output_captions
 
 
-def batch_generator(topic_transfer_values, feature_transfer_values, captions_list, tokenizer, num_images, batch_size, max_length, vocab_size):
+def batch_generator(
+    topic_transfer_values, feature_transfer_values, captions_list, word_idx, num_images, batch_size, max_length, vocab_size
+):
     """
     Generator function for creating random batches of training-data.
     
@@ -113,7 +99,7 @@ def batch_generator(topic_transfer_values, feature_transfer_values, captions_lis
         input_captions, output_captions = [], []
         for idx in indices:
             topic_value, feature_value, input_caption, output_caption = create_sequences(
-                tokenizer,
+                word_idx,
                 max_length,
                 topic_transfer_values[idx],
                 feature_transfer_values[idx],
@@ -197,9 +183,11 @@ def main(args):
     # process captions
     mark_start = 'startseq'
     mark_end = 'endseq'
-    captions_train_marked = mark_captions(captions_train, mark_start, mark_end)  # training
+    captions_train_marked, word_idx, vocab_size = process_captions(  # training
+        captions_train, mark_start, mark_end, args.word_freq
+    )
     captions_val_marked = mark_captions(captions_val, mark_start, mark_end)  # validation
-    tokenizer, vocab_size = create_tokenizer(captions_train_marked)
+    captions_val_marked = clean_captions(captions_val_marked)
 
     num_classes = topic_transfer_values_train.shape[1]
 
@@ -208,7 +196,7 @@ def main(args):
         topic_transfer_values_train,
         feature_transfer_values_train,
         captions_train_marked,
-        tokenizer,
+        word_idx,
         len(captions_train),
         args.batch_size,
         args.max_tokens,
@@ -220,7 +208,7 @@ def main(args):
         topic_transfer_values_val,
         feature_transfer_values_val,
         captions_val_marked,
-        tokenizer,
+        word_idx,
         len(captions_val),
         args.batch_size,
         args.max_tokens,
@@ -233,7 +221,7 @@ def main(args):
         feature_transfer_values_train.shape[1:],
         num_classes,
         args.state_size,
-        tokenizer,
+        word_idx,
         args.glove,
         mark_start,
         mark_end,
@@ -271,6 +259,7 @@ if __name__ == '__main__':
     )
     parser.add_argument('--batch_size', default=128, type=int, help='Number of images per batch')
     parser.add_argument('--epochs', default=30, type=int, help='Epochs')
+    parser.add_argument('--word_freq', default=5, type=int, help='Min frequency of words to consider for the vocabulary')
     parser.add_argument('--state_size', default=1024, type=int, help='State size of LSTM')
     parser.add_argument('--early_stop', default=12, type=int, help='Patience for early stopping callback')
     parser.add_argument('--lr_decay', default=0.1, type=float, help='Learning rate decay factor')

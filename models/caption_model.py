@@ -80,7 +80,7 @@ def create_embedding_layer(word_to_index, glove_file, mark_start, mark_end, num_
     return decoder_embedding
 
 
-def create_caption_encoder(topic_model, tokenizer, glove_file, mark_start, mark_end, state_size, vocab_size, max_tokens):
+def create_caption_encoder(topic_model, word_idx, glove_file, mark_start, mark_end, state_size, vocab_size, max_tokens):
     """ Encode Captions """
 
     # Define layers
@@ -88,7 +88,7 @@ def create_caption_encoder(topic_model, tokenizer, glove_file, mark_start, mark_
         shape=K.int_shape(topic_model.output)[1:], name='topic_input'
     )
     caption_input = Input(shape=(max_tokens,), name='caption_input')
-    caption_embedding = create_embedding_layer(tokenizer.word_index, glove_file, mark_start, mark_end, vocab_size)
+    caption_embedding = create_embedding_layer(word_idx, glove_file, mark_start, mark_end, vocab_size)
     caption_lstm = LSTM(state_size, name='caption_lstm')
 
     # connect layers
@@ -105,7 +105,7 @@ def create_caption_encoder(topic_model, tokenizer, glove_file, mark_start, mark_
     return topic_input, caption_input, caption_model_output
 
 
-def create_model(image_model_weights, feature_input_shape, num_topics, state_size, tokenizer, glove_file, mark_start, mark_end, vocab_size, max_tokens=16):
+def create_model(image_model_weights, feature_input_shape, num_topics, state_size, word_idx, glove_file, mark_start, mark_end, vocab_size, max_tokens=16):
     # Load pre-trained image model
     topic_model, feature_model = load_pre_trained_image_model(image_model_weights, feature_input_shape, num_topics)
 
@@ -114,7 +114,7 @@ def create_model(image_model_weights, feature_input_shape, num_topics, state_siz
 
     # Encode Captions
     topic_input, caption_input, caption_model_output = create_caption_encoder(
-        topic_model, tokenizer, glove_file, mark_start, mark_end, state_size, vocab_size, max_tokens
+        topic_model, word_idx, glove_file, mark_start, mark_end, state_size, vocab_size, max_tokens
     )
     
     # merge encoders and create the decoder

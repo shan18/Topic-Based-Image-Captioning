@@ -221,6 +221,7 @@ def main(args):
         feature_transfer_values_train.shape[1:],
         num_classes,
         args.state_size,
+        args.dropout,
         word_idx,
         args.glove,
         mark_start,
@@ -261,6 +262,7 @@ if __name__ == '__main__':
     parser.add_argument('--epochs', default=30, type=int, help='Epochs')
     parser.add_argument('--word_freq', default=5, type=int, help='Min frequency of words to consider for the vocabulary')
     parser.add_argument('--state_size', default=1024, type=int, help='State size of LSTM')
+    parser.add_argument('--dropout', default=0.5, type=float, help='Dropout Rate')
     parser.add_argument('--early_stop', default=12, type=int, help='Patience for early stopping callback')
     parser.add_argument('--lr_decay', default=0.1, type=float, help='Learning rate decay factor')
     parser.add_argument('--min_lr', default=0.0001, type=float, help='Lower bound on learning rate')

@@ -14,12 +14,12 @@ def load_pre_trained_image_model(weights_path, input_shape, num_classes):
     return topic_model, feature_model
 
 
-def create_image_encoder(feature_model, state_size):
+def create_image_encoder(feature_model, state_size, dropout):
     """ Encode Images """
     feature_input = Input(
         shape=K.int_shape(feature_model.output)[1:], name='feature_input'
     )
-    feature_net = Dropout(0.2)(feature_input)
+    feature_net = Dropout(dropout)(feature_input)
     image_model_output = Dense(state_size, activation='relu', name='image_model_output')(feature_net)
     return feature_input, image_model_output
 
@@ -80,7 +80,9 @@ def create_embedding_layer(word_to_index, glove_file, mark_start, mark_end, num_
     return decoder_embedding
 
 
-def create_caption_encoder(topic_model, word_idx, glove_file, mark_start, mark_end, state_size, vocab_size, max_tokens):
+def create_caption_encoder(
+    topic_model, word_idx, glove_file, mark_start, mark_end, state_size, dropout, vocab_size, max_tokens
+):
     """ Encode Captions """
 
     # Define layers
@@ -99,22 +101,25 @@ def create_caption_encoder(topic_model, word_idx, glove_file, mark_start, mark_e
     topic_lstm_states = [initial_state_h0, initial_state_c0]
     net = caption_input  # Start the decoder-network with its input-layer
     net = caption_embedding(net)  # Connect the embedding-layer
-    net = Dropout(0.2)(net)
+    net = Dropout(dropout)(net)
     caption_model_output = caption_lstm(net, initial_state=topic_lstm_states) # Connect the caption LSTM layer
 
     return topic_input, caption_input, caption_model_output
 
 
-def create_model(image_model_weights, feature_input_shape, num_topics, state_size, word_idx, glove_file, mark_start, mark_end, vocab_size, max_tokens=16):
+def create_model(
+    image_model_weights, feature_input_shape, num_topics, state_size, dropout,
+    word_idx, glove_file, mark_start, mark_end, vocab_size, max_tokens=16
+):
     # Load pre-trained image model
     topic_model, feature_model = load_pre_trained_image_model(image_model_weights, feature_input_shape, num_topics)
 
     # Encode Images
-    feature_input, image_model_output = create_image_encoder(feature_model, state_size)
+    feature_input, image_model_output = create_image_encoder(feature_model, state_size, dropout)
 
     # Encode Captions
     topic_input, caption_input, caption_model_output = create_caption_encoder(
-        topic_model, word_idx, glove_file, mark_start, mark_end, state_size, vocab_size, max_tokens
+        topic_model, word_idx, glove_file, mark_start, mark_end, state_size, dropout, vocab_size, max_tokens
     )
     
     # merge encoders and create the decoder

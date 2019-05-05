@@ -54,7 +54,7 @@ def train_model(model, train_data, val_data, args):
         verbose=1,
         save_best_only=True
     )
-    callback_reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=args.lr_decay, patience=4, verbose=1, min_lr=args.min_lr)
+    callback_reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=args.lr_decay, patience=2, verbose=1, min_lr=args.min_lr)
     # early_stop = EarlyStopping(monitor='val_loss', patience=3, verbose=1)
     callbacks = [callback_tensorboard, callback_checkpoint, callback_reduce_lr]
 

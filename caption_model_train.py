@@ -221,7 +221,7 @@ def main(args):
         num_classes,
         args.state_size,
         args.dropout,
-        tokenizer.word_idx,
+        tokenizer.word_index,
         args.glove,
         mark_start,
         mark_end,

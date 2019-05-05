@@ -4,11 +4,11 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, Dense, LSTM, Embedding, Add, Reshape, Dropout
 
 from models.vgg19 import load_vgg19
-from models.topic_category_model import load_category_model
+from models.topic_model import load_topic_model
 
 
 def load_pre_trained_image_model(weights_path, input_shape, num_classes):
-    topic_model = load_category_model(input_shape, num_classes, weights_path)
+    topic_model = load_topic_model(input_shape, num_classes, weights_path)
     feature_model = load_vgg19()
     print('Done.\n')
     return topic_model, feature_model

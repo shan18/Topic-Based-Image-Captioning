@@ -11,7 +11,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils import load_coco, load_image, print_progress_bar
 from create_topic_dataset import load_split_data
 from models.vgg19 import load_vgg19
-from models.topic_category_model import load_category_model
+from models.topic_model import load_topic_model
 
 
 def load_input_shape(data_type, data_dir):
@@ -33,7 +33,7 @@ def load_input_shape(data_type, data_dir):
 
 def load_pre_trained_model(input_shape, output_dim, weights_path):
     print('Loading pre-trained models...')
-    topic_model = load_category_model(input_shape, output_dim, weights_path)
+    topic_model = load_topic_model(input_shape, output_dim, weights_path)
     feature_model = load_vgg19()
     print('Done.\n')
     return topic_model, feature_model

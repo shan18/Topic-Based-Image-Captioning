@@ -43,7 +43,7 @@ from models.vgg19 import load_vgg19
 #     return model
 
 
-def create_category_model(input_shape, output_dim):
+def create_topic_model(input_shape, output_dim):
     """ Use pre-trained vgg19 model and add a custom classification layer """
 
     feature_input = Input(
@@ -63,10 +63,10 @@ def create_category_model(input_shape, output_dim):
     return model
 
 
-def load_category_model(input_shape, output_dim, weights_path):
+def load_topic_model(input_shape, output_dim, weights_path):
     """ Load topic model with pre-trained weights """
 
-    model = create_category_model(input_shape, output_dim)
+    model = create_topic_model(input_shape, output_dim)
 
     try:
         model.load_weights(weights_path)

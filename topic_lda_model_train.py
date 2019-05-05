@@ -14,10 +14,10 @@ from models.topic_model import create_topic_model
 def load_data(data_type, data_dir):
     # Path for the cache-file.
     feature_cache_path = os.path.join(
-        data_dir, 'vgg_features_{}.h5'.format(data_type)
+        data_dir, 'features_{}.h5'.format(data_type)
     )
     topics_cache_path = os.path.join(
-        data_dir, 'categories_{}.pkl'.format(data_type)
+        data_dir, 'lda_topics_{}.pkl'.format(data_type)
     )
 
     if os.path.exists(topics_cache_path):
@@ -40,7 +40,7 @@ def train_model(model, train_data, val_data, args):
     weights_dir = 'weights'
     if not os.path.exists(weights_dir):
         os.mkdir(weights_dir)
-    path_checkpoint = 'weights/topic-weights-{epoch:02d}-{val_loss:.2f}.hdf5'
+    path_checkpoint = 'weights/lda-topic-weights-{epoch:02d}-{val_loss:.2f}.hdf5'
 
     # set model callbacks
     callback_tensorboard = TensorBoard(
@@ -86,11 +86,6 @@ def main(args):
     topics_val = np.array(topics_val)
     print('\nFeatures shape:', features_train.shape)
     print('Topics shape:', topics_train.shape)
-
-    # Load mapping
-    with open(args.raw, 'rb') as file:
-        coco_raw = pickle.load(file)
-    id_category = coco_raw['id_category']
 
     # Create model
     model = create_topic_model(features_train.shape[1:], topics_train.shape[1])

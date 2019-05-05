@@ -91,7 +91,7 @@ def main(args):
     print(model.summary())
 
     # Train model
-    train_model(model, (features_train, topics_train), (features_val_arr, topics_val), args)
+    train_model(model, (features_train, topics_train), (features_val, topics_val), args)
 
 
 if __name__ == '__main__':

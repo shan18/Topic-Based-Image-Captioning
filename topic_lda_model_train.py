@@ -14,7 +14,7 @@ from models.topic_model import create_topic_model
 def load_data(data_type, data_dir):
     # Path for the cache-file.
     feature_cache_path = os.path.join(
-        data_dir, 'features_{}.h5'.format(data_type)
+        data_dir, 'features_{}.pkl'.format(data_type)
     )
     topics_cache_path = os.path.join(
         data_dir, 'lda_topics_{}.pkl'.format(data_type)
@@ -24,13 +24,13 @@ def load_data(data_type, data_dir):
         with open(topics_cache_path, mode='rb') as file:
             topics = pickle.load(file)
     if os.path.exists(feature_cache_path):
-        feature_file = h5py.File(feature_cache_path, 'r')
-        feature_obj = feature_file['feature_values']
+        with open(feature_cache_path, mode='rb') as file:
+            feature_obj = pickle.load(file)
     else:
         sys.exit('processed {} data does not exist.'.format(data_type))
 
     print('{} data loaded from cache-file.'.format(data_type))
-    return feature_file, feature_obj, topics
+    return feature_obj, topics
 
 
 def train_model(model, train_data, val_data, args):
@@ -75,15 +75,14 @@ def train_model(model, train_data, val_data, args):
 
 def main(args):
     # Load pre-processed data
-    feature_file_train, features_train, topics_train = load_data(
+    features_train, topics_train = load_data(
         'train', args.data
     )
-    feature_file_val, features_val, topics_val = load_data(
+    features_val, topics_val = load_data(
         'val', args.data
     )
-    features_val_arr = np.array(features_val)
-    topics_train = np.array(topics_train)
-    topics_val = np.array(topics_val)
+    # topics_train = np.array(topics_train)
+    # topics_val = np.array(topics_val)
     print('\nFeatures shape:', features_train.shape)
     print('Topics shape:', topics_train.shape)
 
@@ -93,10 +92,6 @@ def main(args):
 
     # Train model
     train_model(model, (features_train, topics_train), (features_val_arr, topics_val), args)
-
-    # Close the dataset file
-    feature_file_train.close()
-    feature_file_val.close()
 
 
 if __name__ == '__main__':

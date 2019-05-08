@@ -14,7 +14,7 @@ from models.topic_model import create_topic_model
 def load_data(data_type, data_dir):
     # Path for the cache-file.
     feature_cache_path = os.path.join(
-        data_dir, 'features_{}.pkl'.format(data_type)
+        data_dir, 'inception_features_{}.pkl'.format(data_type)
     )
     topics_cache_path = os.path.join(
         data_dir, 'lda_topics_{}.pkl'.format(data_type)

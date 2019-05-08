@@ -81,7 +81,7 @@ def process_images(model, filenames, data_dir, save_file, batch_size):
     print()
 
 
-def process_data(model, data_type, filenames, categories, save_path, data_dir, batch_size):
+def process_data(model, data_type, filenames, categories, captions, save_path, data_dir, batch_size):
     print('Processing {0} images in {1}-set ...'.format(len(filenames), data_type))
 
     # Path for the cache-file.
@@ -91,6 +91,9 @@ def process_data(model, data_type, filenames, categories, save_path, data_dir, b
     )
     categories_cache_path = os.path.join(
         cache_path_dir, 'categories_{}.pkl'.format(data_type)
+    )
+    captions_cache_path = os.path.join(
+        cache_path_dir, 'captions_{}.pkl'.format(data_type)
     )
     
     # Check if directory to store processed data exists
@@ -104,6 +107,8 @@ def process_data(model, data_type, filenames, categories, save_path, data_dir, b
     )
     with open(categories_cache_path, mode='wb') as file:
         pickle.dump(categories, file)
+    with open(captions_cache_path, mode='wb') as file:
+        pickle.dump(captions, file)
     print('{} data saved to cache-file.'.format(data_type))
 
 
@@ -111,9 +116,9 @@ def main(args):
     train_data, val_data, test_data = load_split_data(
         args.raw, args.split
     )
-    _, train_images, train_categories, _ = train_data
-    _, val_images, val_categories, _ = val_data
-    _, test_images, test_categories, _ = test_data
+    _, train_images, train_categories, train_captions = train_data
+    _, val_images, val_categories, val_captions = val_data
+    _, test_images, test_categories, test_captions = test_data
 
     print('\nDataset sizes:')
     print('Training:', len(train_images))
@@ -124,13 +129,13 @@ def main(args):
 
     # Generate and save dataset
     process_data(  # training data
-        model, 'train', train_images, train_categories, args.save, args.root, args.batch_size
+        model, 'train', train_images, train_categories, train_captions, args.save, args.root, args.batch_size
     )
     process_data(  # validation data
-        model, 'val', val_images, val_categories, args.save, args.root, args.batch_size
+        model, 'val', val_images, val_categories, val_captions, args.save, args.root, args.batch_size
     )
     process_data(  # test data
-        model, 'test', test_images, test_categories, args.save, args.root, args.batch_size
+        model, 'test', test_images, test_categories, test_captions, args.save, args.root, args.batch_size
     )
 
 

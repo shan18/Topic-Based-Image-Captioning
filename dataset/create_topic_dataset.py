@@ -10,7 +10,7 @@ import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from utils import load_coco, load_image, print_progress_bar
-from models.vgg19 import load_vgg19
+from models.inception_v3 import load_inception_v3
 
 
 def create_multi_label_categories_vector(categories_list, category_id):
@@ -87,7 +87,7 @@ def process_data(model, data_type, filenames, categories, save_path, data_dir, b
     # Path for the cache-file.
     cache_path_dir = save_path
     feature_cache_path = os.path.join(
-        cache_path_dir, 'vgg_features_{}.h5'.format(data_type)
+        cache_path_dir, 'inception_features_{}.h5'.format(data_type)
     )
     categories_cache_path = os.path.join(
         cache_path_dir, 'categories_{}.pkl'.format(data_type)
@@ -120,7 +120,7 @@ def main(args):
     print('Validation:', len(val_images))
     print('Test:', len(test_images))
 
-    model = load_vgg19()
+    model = load_inception_v3()
 
     # Generate and save dataset
     process_data(  # training data

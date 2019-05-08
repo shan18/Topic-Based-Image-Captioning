@@ -10,14 +10,14 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from utils import load_coco, load_image, print_progress_bar
 from create_topic_dataset import load_split_data
-from models.vgg19 import load_vgg19
+from models.inception_v3 import load_inception_v3
 from models.topic_model import load_topic_model
 
 
 def load_input_shape(data_type, data_dir):
     # Path for the cache-file.
     feature_cache_path = os.path.join(
-        data_dir, 'vgg_features_{}.h5'.format(data_type)
+        data_dir, 'inception_features_{}.h5'.format(data_type)
     )
 
     if os.path.exists(feature_cache_path):
@@ -34,7 +34,7 @@ def load_input_shape(data_type, data_dir):
 def load_pre_trained_model(input_shape, output_dim, weights_path):
     print('Loading pre-trained models...')
     topic_model = load_topic_model(input_shape, output_dim, weights_path)
-    feature_model = load_vgg19()
+    feature_model = load_inception_v3()
     print('Done.\n')
     return topic_model, feature_model
 

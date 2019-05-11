@@ -6,25 +6,18 @@
 2. Inside the directory, download and the MSCOCO 2017 _Train_ and _Val_ images along with _Train/Val_ annotations from [here](http://cocodataset.org/#download) and then extract them.
 3. Download the **glove.6B.zip** file from [here](https://nlp.stanford.edu/projects/glove/). Then extract the file _glove.6B.300d.txt_ from the downloaded file.
 4. Create a simplified version of MSCOCO 2017 dataset  
-   `$ python dataset/parse_coco.py --topic topic_name`
-5. To process the dataset for training the topic model  
-   `$ python dataset/create_category_dataset.py`
-6. To process the dataset for training the caption model  
-   `$ python dataset/create_caption_category_dataset.py`
+   `$ python dataset/parse_coco.py`
 
-## NLTK Setup
+## Topic model training
 
-```[python]
-import nltk
-nltk.download('stopwords')
-nltk.download('punkt')
-```
+1. To process the dataset for training the topic model  
+   `$ python dataset/create_topic_dataset.py`
+2. Train the topic model  
+   `$ python topic_category_model_train.py`
 
-## Exec List
+## Caption model training
 
-1. parse_coco.py
-2. process_dataset.py
-3. lda_model_train.py
-4. topic_model_train.py
-5. process_caption_dataset.py
-6. caption_model_train.py
+1. To process the dataset for training the caption model
+   `$ python dataset/create_caption_dataset.py --image_weights <path to the weights of the topic model>`
+2. Train the caption model
+   `$ python caption_model_train.py`

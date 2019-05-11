@@ -32,7 +32,7 @@ def create_and_train(lda_data, num_topics, iterations):
 
 
 def save_topics(topics, data_dir, data_type):
-    topics_path = os.path.join(data_dir, 'topics_{}.pkl'.format(data_type))
+    topics_path = os.path.join(data_dir, 'lda_topics_{}.pkl'.format(data_type))
     with open(topics_path, mode='wb') as file:
         pickle.dump(topics, file)
     print('Data Saved.')
@@ -53,10 +53,14 @@ def main(args):
     captions_val = load_data(
         'val', args.data
     )
+    captions_test = load_data(
+        'test', args.data
+    )
 
     # Create data
     lda_data_train = create_lda_data(captions_train, args.num_words)
     lda_data_val = create_lda_data(captions_val, args.num_words)
+    lda_data_test = create_lda_data(captions_test, args.num_words)
 
     # Create and train model
     model = create_and_train(lda_data_train, args.topics, args.iterations)
@@ -64,10 +68,12 @@ def main(args):
     # Get topics
     train_topic = model.doc_topic_
     val_topic = model.transform(lda_data_val)
+    test_topic = model.transform(lda_data_test)
 
     # Save
     save_topics(train_topic, args.data, 'train')
     save_topics(val_topic, args.data, 'val')
+    save_topics(test_topic, args.data, 'test')
 
 
 if __name__ == '__main__':

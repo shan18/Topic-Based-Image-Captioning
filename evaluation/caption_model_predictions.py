@@ -102,7 +102,8 @@ def main(args):
         feature_values.shape[1:],
         topic_values.shape[1],
         args.state_size,
-        tokenizer,
+        args.dropout,
+        tokenizer.word_index,
         args.glove,
         mark_start,
         mark_end,
@@ -165,6 +166,7 @@ if __name__ == '__main__':
         help='Path to weights of the captioning model'
     )
     parser.add_argument('--state_size', default=1024, type=int, help='State size of LSTM')
+    parser.add_argument('--dropout', default=0.5, type=float, help='Dropout Rate')
     parser.add_argument('--max_tokens', default=16, type=int, help='Max length of the captions')
     args = parser.parse_args()
 

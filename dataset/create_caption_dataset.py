@@ -155,7 +155,10 @@ def main(args):
     val_img_ids, val_images, val_categories, val_captions = val_data
     test_img_ids, test_images, test_categories, test_captions = test_data
 
-    num_classes = len(train_categories[0])
+    if args.num_classes == 0:
+        num_classes = len(train_categories[0])
+    else:
+        num_classes = args.num_classes
     print('\nNum Topics:', num_classes)
     
     # Load pre-trained image models
@@ -197,6 +200,10 @@ if __name__ == '__main__':
     parser.add_argument(
         '--batch_size', default=256, type=int,
         help='Batch size for the pre-trained model to make predictions'
+    )
+    parser.add_argument(
+        '--num_classes', default=None, type=int,
+        help='Number of classes for the model'
     )
     parser.add_argument('--split', default=5000, help='Number of images for validation and test set')
     args = parser.parse_args()

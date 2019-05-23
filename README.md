@@ -12,8 +12,10 @@
 
 1. To process the dataset for training the topic model  
    `$ python dataset/create_topic_dataset.py`
-2. Train the topic model  
-   `$ python topic_category_model_train.py`
+2. Train the lda model  
+   `$ python lda_model_train.py`
+3. Train the topic model  
+   `$ python topic_lda_model_train.py`
 
 ## Caption model training
 

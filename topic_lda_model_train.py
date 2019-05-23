@@ -110,8 +110,8 @@ if __name__ == '__main__':
     )
     parser.add_argument('--batch_size', default=128, type=int, help='Batch Size')
     parser.add_argument('--epochs', default=40, type=int, help='Epochs')
-    parser.add_argument('--lr_decay', default=0.1, type=float, help='Learning rate decay factor')
-    parser.add_argument('--min_lr', default=0.0001, type=float, help='Lower bound on learning rate')
+    parser.add_argument('--lr_decay', default=0.2, type=float, help='Learning rate decay factor')
+    parser.add_argument('--min_lr', default=0.00001, type=float, help='Lower bound on learning rate')
     args = parser.parse_args()
 
     main(args)

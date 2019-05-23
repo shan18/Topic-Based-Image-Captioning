@@ -155,7 +155,7 @@ def main(args):
     val_img_ids, val_images, val_categories, val_captions = val_data
     test_img_ids, test_images, test_categories, test_captions = test_data
 
-    if args.num_classes == 0:
+    if args.num_classes is None:
         num_classes = len(train_categories[0])
     else:
         num_classes = args.num_classes

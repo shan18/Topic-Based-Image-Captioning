@@ -33,7 +33,8 @@ def load_topic_model(input_shape, output_dim, weights_path):
     try:
         model.load_weights(weights_path)
         print('Weights loaded.')
-    except:
+    except Exception as e:
         print('Error trying to load weights.')
+        print(e)
         
     return model

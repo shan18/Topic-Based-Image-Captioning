@@ -6,14 +6,12 @@ import numpy as np
 
 def load_images_data(img_ids, images_data):
     filenames = []
-    categories = []
     captions = []
     for img_id in img_ids:
         filenames.append(images_data[img_id]['file_name'])
-        categories.append(images_data[img_id]['categories'])
         captions.append(images_data[img_id]['captions'])
 
-    return (filenames, categories, captions)
+    return (filenames, captions)
 
 
 def load_coco(input_path, split):
@@ -22,8 +20,6 @@ def load_coco(input_path, split):
         coco_raw = pickle.load(file)
     images_data_train = coco_raw['images_data_train']
     images_data_val = coco_raw['images_data_val']
-    category_id = coco_raw['category_id']
-    id_category = coco_raw['id_category']
     
     # split dataset
     img_ids = list(images_data_train.keys())
@@ -40,11 +36,11 @@ def load_coco(input_path, split):
     img_ids_train = img_ids[split + val_split_diff:]
     
     # load dataset
-    train_images, train_categories, train_captions = load_images_data(img_ids_train, images_data_train)  # training dataset
-    val_images, val_categories, val_captions = load_images_data(img_ids_val, images_data_val)  # validation dataset
-    test_images, test_categories, test_captions = load_images_data(img_ids_test, images_data_train)  # test dataset
+    train_images, train_captions = load_images_data(img_ids_train, images_data_train)  # training dataset
+    val_images, val_captions = load_images_data(img_ids_val, images_data_val)  # validation dataset
+    test_images, test_captions = load_images_data(img_ids_test, images_data_train)  # test dataset
     
-    return (img_ids_train, train_images, train_categories, train_captions), (img_ids_val, val_images, val_categories, val_captions), (img_ids_test, test_images, test_categories, test_captions), category_id, id_category
+    return (img_ids_train, train_images, train_captions), (img_ids_val, val_images, val_captions), (img_ids_test, test_images, test_captions)
 
 
 def load_image(path, size=None, grayscale=False):

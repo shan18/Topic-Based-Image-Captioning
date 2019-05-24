@@ -8,7 +8,7 @@ from tensorflow.keras import backend as K
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from utils import load_coco, load_image, print_progress_bar
+from utils import load_image, print_progress_bar
 from create_topic_dataset import load_split_data
 from models.inception_v3 import load_inception_v3
 from models.topic_model import load_topic_model
@@ -99,7 +99,7 @@ def process_images(topic_model, feature_model, filenames, args):
     return topic_transfer_values, feature_transfer_values
 
 
-def process_data(topic_model, feature_model, img_ids, filenames, categories, captions, data_type, args):
+def process_data(topic_model, feature_model, img_ids, filenames, captions, data_type, args):
     print('Processing {0} images in {1}-set ...'.format(len(filenames), data_type))
 
     # Path for the cache-file.
@@ -119,9 +119,6 @@ def process_data(topic_model, feature_model, img_ids, filenames, categories, cap
     captions_cache_path = os.path.join(
         cache_path_dir, 'captions_{}.pkl'.format(data_type)
     )
-    categories_cache_path = os.path.join(
-        cache_path_dir, 'categories_{}.pkl'.format(data_type)
-    )
     
     # Check if directory to store processed data exists
     if not os.path.exists(cache_path_dir):
@@ -140,8 +137,6 @@ def process_data(topic_model, feature_model, img_ids, filenames, categories, cap
         pickle.dump(img_ids, file)
     with open(images_cache_path, mode='wb') as file:
         pickle.dump(filenames, file)
-    with open(categories_cache_path, mode='wb') as file:
-        pickle.dump(categories, file)
     with open(captions_cache_path, mode='wb') as file:
         pickle.dump(captions, file)
     print("Data saved to cache-file.")
@@ -151,30 +146,26 @@ def main(args):
     train_data, val_data, test_data = load_split_data(
         args.raw, args.split
     )
-    train_img_ids, train_images, train_categories, train_captions = train_data
-    val_img_ids, val_images, val_categories, val_captions = val_data
-    test_img_ids, test_images, test_categories, test_captions = test_data
+    train_img_ids, train_images, train_captions = train_data
+    val_img_ids, val_images, val_captions = val_data
+    test_img_ids, test_images, test_captions = test_data
 
-    if args.num_classes is None:
-        num_classes = len(train_categories[0])
-    else:
-        num_classes = args.num_classes
-    print('\nNum Topics:', num_classes)
+    print('\nNum Topics:', args.num_classes)
     
     # Load pre-trained image models
     topic_model, feature_model = load_pre_trained_model(
-        load_input_shape('train', args.data), num_classes, args.image_weights
+        load_input_shape('train', args.data), args.num_classes, args.image_weights
     )
 
     # Generate and save dataset
     process_data(  # training data
-        topic_model, feature_model, train_img_ids, train_images, train_categories, train_captions, 'train', args
+        topic_model, feature_model, train_img_ids, train_images, train_captions, 'train', args
     )
     process_data(  # validation data
-        topic_model, feature_model, val_img_ids, val_images, val_categories, val_captions, 'val', args
+        topic_model, feature_model, val_img_ids, val_images, val_captions, 'val', args
     )
     process_data(  # test data
-        topic_model, feature_model, test_img_ids, test_images, test_categories, test_captions, 'test', args
+        topic_model, feature_model, test_img_ids, test_images, test_captions, 'test', args
     )
 
 
@@ -202,7 +193,7 @@ if __name__ == '__main__':
         help='Batch size for the pre-trained model to make predictions'
     )
     parser.add_argument(
-        '--num_classes', default=None, type=int,
+        '--num_classes', required=True, type=int,
         help='Number of classes for the model'
     )
     parser.add_argument('--split', default=5000, help='Number of images for validation and test set')

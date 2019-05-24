@@ -34,7 +34,7 @@ def load_data(data_type, data_dir):
 
 
 def train_model(model, train_data, val_data, args):
-    train_images, train_categories = train_data
+    train_images, train_topics = train_data
 
     # set weights directory and checkpoint path
     weights_dir = 'weights'
@@ -44,7 +44,7 @@ def train_model(model, train_data, val_data, args):
 
     # set model callbacks
     callback_tensorboard = TensorBoard(
-        log_dir=os.path.join(weights_dir, 'topic-category-logs'),
+        log_dir=os.path.join(weights_dir, 'topic-logs'),
         histogram_freq=0,
         write_graph=True
     )
@@ -61,7 +61,7 @@ def train_model(model, train_data, val_data, args):
     try:
         model.fit(
             x=train_images,
-            y=train_categories,
+            y=train_topics,
             batch_size=args.batch_size,
             epochs=args.epochs,
             callbacks=callbacks,

@@ -23,3 +23,9 @@
    `$ python dataset/create_caption_dataset.py --image_weights <path to the weights of the topic model>`
 2. Train the caption model
    `$ python caption_model_train.py`
+
+## Evaluation
+
+1. Generate model predictions  
+   `$ python evaluation/caption_model_predictions.py --image_weights <path to the weights of the topic model> --model_weights <path to the weights of the caption model>`
+2. Generate the evaluation scores using the code provided by MSCOCO [here](https://github.com/tylin/coco-caption).

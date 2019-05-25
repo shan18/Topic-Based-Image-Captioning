@@ -1,6 +1,18 @@
 # Topic-Based-Image-Captioning
 
+## Core Dependencies
+
+- Python 3.6
+- Tensorflow
+- NLTK
+
 ## Model Training and Evaluation
+
+### Installing Requirements
+
+1. Install the packages mentioned in `requirements.txt` in a **python 3.6** environment.
+2. Install the _stopwords_ package from NLTK  
+   `$ python -m nltk.downloader stopwords`
 
 ### Data Preparation
 

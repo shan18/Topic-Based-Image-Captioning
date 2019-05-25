@@ -20,7 +20,7 @@ def create_topic_model(input_shape, output_dim):
     )
 
     # Compile the model
-    model.compile(loss='binary_crossentropy', optimizer='adam')
+    model.compile(loss='mse', optimizer='rmsprop')
 
     return model
 

@@ -61,12 +61,12 @@ Evaluation scores are generated using the code provided [here](https://github.co
 
 ### Examples
 
-<img src="images/1.jpg" style="height: 200px" />
-<img src="images/6.jpg" style="height: 200px" />
-<img src="images/7.jpg" style="height: 200px" />
-<img src="images/5.jpg" style="height: 200px" />
-<img src="images/8.jpg" style="height: 200px" />
-<img src="images/4.jpg" style="height: 200px" />
-<img src="images/2.jpg" style="height: 200px" />
-<img src="images/3.jpg" style="height: 200px" />
-<img src="images/9.jpg" style="height: 200px" />
+<img src="images/1.jpg" height="350" />
+<img src="images/6.jpg" height="250" />
+<img src="images/7.jpg" height="250" />
+<img src="images/5.jpg" height="250" />
+<img src="images/8.jpg" height="250" />
+<img src="images/4.jpg" height="250" />
+<img src="images/2.jpg" height="250" />
+<img src="images/3.jpg" height="250" />
+<img src="images/9.jpg" height="250" />

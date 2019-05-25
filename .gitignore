@@ -5,8 +5,6 @@ evaluation/pycocoevalcap/
 evaluation/pycocotools/
 evaluation/get_stanford_models.sh
 evaluation/annotations/*.json
-*.png
-*.jpg
 
 # Large files
 dataset/*

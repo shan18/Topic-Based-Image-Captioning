@@ -1,6 +1,8 @@
 # Topic-Based-Image-Captioning
 
-## Data Preparation
+## Model Training and Evaluation
+
+### Data Preparation
 
 1. Go to the directory `dataset`.
 2. Inside the directory, download and the MSCOCO 2017 _Train_ and _Val_ images along with _Train/Val_ annotations from [here](http://cocodataset.org/#download) and then extract them.
@@ -8,7 +10,7 @@
 4. Create a simplified version of MSCOCO 2017 dataset  
    `$ python dataset/parse_coco.py`
 
-## Topic model training
+### Topic model training
 
 1. To process the dataset for training the topic model  
    `$ python dataset/create_topic_dataset.py`
@@ -17,20 +19,20 @@
 3. Train the topic model  
    `$ python topic_lda_model_train.py`
 
-## Caption model training
+### Caption model training
 
 1. To process the dataset for training the caption model
    `$ python dataset/create_caption_dataset.py --image_weights <path to the weights of the topic model>`
 2. Train the caption model
    `$ python caption_model_train.py --image_weights <path to the weights of the topic model>`
 
-## Generate Predictions
+### Generate Predictions
 
 Generate model predictions  
 `$ python evaluation/caption_model_predictions.py --image_weights <path to the weights of the topic model> --model_weights <path to the weights of the caption model>`  
 The file generated after executing the above script is used for generation of evaluation scores below.
 
-## Evaluation
+### Evaluation
 
 Evaluation scores are generated using the code provided [here](https://github.com/tylin/coco-caption).
 
@@ -41,3 +43,30 @@ Evaluation scores are generated using the code provided [here](https://github.co
 5. Install requirements  
    `$ pip install -r evaluation/requirements.txt`
 6. Run the code in the notebook _generate_evaluation_scores.ipynb_ to obtain the evaluation scores.
+
+## Results
+
+### Scores
+
+| Metric  | Score |
+| ------- | ----- |
+| BLEU-1  | 0.669 |
+| BLEU-2  | 0.493 |
+| BLEU-3  | 0.353 |
+| BLEU-4  | 0.252 |
+| CIDEr   | 0.822 |
+| ROUGE_L | 0.498 |
+| METEOR  | 0.232 |
+| SPICE   | 0.159 |
+
+### Examples
+
+![example_1](images/1.jpg)
+![example_6](images/6.jpg)
+![example_7](images/7.jpg)
+![example_5](images/5.jpg)
+![example_8](images/8.jpg)
+![example_4](images/4.jpg)
+![example_2](images/2.jpg)
+![example_3](images/3.jpg)
+![example_9](images/9.jpg)

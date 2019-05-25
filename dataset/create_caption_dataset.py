@@ -14,21 +14,31 @@ from models.inception_v3 import load_inception_v3
 from models.topic_model import load_topic_model
 
 
-def load_input_shape(data_type, data_dir):
+def load_input_shapes(data_type, data_dir):
+    """ Load the shapes of the input to be given to the caption model. """
     # Path for the cache-file.
     feature_cache_path = os.path.join(
         data_dir, 'inception_features_{}.h5'.format(data_type)
     )
+    topic_cache_path = os.path.join(
+        data_dir, 'lda_topics_{}.pkl'.format(data_type)
+    )
 
-    if os.path.exists(feature_cache_path):
+    if os.path.exists(feature_cache_path) and os.path.exists(topic_cache_path):
+        # Shape of image features
         feature_file = h5py.File(feature_cache_path, 'r')
         feature_obj = feature_file['feature_values']
+
+        # Shape of image topics vector
+        with open(topic_cache_path, mode='rb') as file:
+            topic_obj = pickle.load(file)
     else:
         sys.exit('processed {} data does not exist.'.format(data_type))
     
-    input_shape = feature_obj.shape[1:]
+    feature_shape = feature_obj.shape[1:]
+    topic_shape = topic_obj.shape[1]
     feature_file.close()
-    return input_shape
+    return feature_shape, topic_shape
 
 
 def load_pre_trained_model(input_shape, output_dim, weights_path):
@@ -149,12 +159,12 @@ def main(args):
     train_img_ids, train_images, train_captions = train_data
     val_img_ids, val_images, val_captions = val_data
     test_img_ids, test_images, test_captions = test_data
-
-    print('\nNum Topics:', args.num_classes)
     
     # Load pre-trained image models
+    feature_shape, topic_shape = load_input_shapes('train', args.data)
+    print('\nNum Topics:', topic_shape)
     topic_model, feature_model = load_pre_trained_model(
-        load_input_shape('train', args.data), args.num_classes, args.image_weights
+        feature_shape, topic_shape, args.image_weights
     )
 
     # Generate and save dataset
@@ -191,10 +201,6 @@ if __name__ == '__main__':
     parser.add_argument(
         '--batch_size', default=256, type=int,
         help='Batch size for the pre-trained model to make predictions'
-    )
-    parser.add_argument(
-        '--num_classes', required=True, type=int,
-        help='Number of classes for the model'
     )
     parser.add_argument('--split', default=5000, help='Number of images for validation and test set')
     args = parser.parse_args()

@@ -77,7 +77,7 @@ def store_predictions(
         print_progress_bar(print_progress_bar_counter, num_images)
 
     print()
-    with open('captions_results.json', 'w') as f:
+    with open('model_predictions.json', 'w') as f:
         json.dump(captions, f)
 
 

@@ -20,7 +20,7 @@ def create_topic_model(input_shape, output_dim):
     )
 
     # Compile the model
-    model.compile(loss='mse', optimizer='rmsprop')
+    model.compile(loss='mean_squared_error', optimizer='rmsprop')
 
     return model
 

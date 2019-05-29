@@ -11,7 +11,7 @@ from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 
 from dataset.process_texts import (
-    mark_captions, flatten, clean_captions, caption_to_sequence, build_vocabulary_with_frequency_threshold
+    mark_captions, flatten
 )
 from models.caption_model import create_model
 
@@ -53,19 +53,11 @@ def create_tokenizer(captions_marked):
     return tokenizer, vocab_size
 
 
-def process_captions(captions_list, mark_start, mark_end, freq_threshold):
-    captions_list_marked = mark_captions(captions_list, mark_start, mark_end)
-    captions_list_marked = clean_captions(captions_list_marked)
-    vocab, word_idx, _ = build_vocabulary_with_frequency_threshold(captions_list_marked, freq_threshold)
-    return captions_list_marked, word_idx, len(vocab) + 1
-
-
 def create_sequences(tokenizer, max_length, topic_transfer_value, feature_transfer_value, caption, vocab_size):
     """ Create sequences of topic_values, feature_values, input sequence and output sequence for an image """
     topic_values, feature_values = [], []
     input_captions, output_captions = [], []
-    # integer_sequence = tokenizer.texts_to_sequences([caption])[0]  # encode the sequence
-    integer_sequence = caption_to_sequence(caption, tokenizer)  # encode the sequence
+    integer_sequence = tokenizer.texts_to_sequences([caption])[0]  # encode the sequence
     
     for idx in range(1, len(integer_sequence)):
         in_seq, out_seq = integer_sequence[:idx], integer_sequence[idx]  # split into input and output pair
@@ -191,15 +183,9 @@ def main(args):
     # process captions
     mark_start = 'startseq'
     mark_end = 'endseq'
-    # captions_train_marked = mark_captions(captions_train, mark_start, mark_end)  # training
-    # captions_val_marked = mark_captions(captions_val, mark_start, mark_end)  # validation
-    # tokenizer, vocab_size = create_tokenizer(captions_train_marked)
-    captions_train_marked, word_idx, vocab_size = process_captions(  # training
-        captions_train, mark_start, mark_end, args.word_freq
-    )
-    captions_val_marked = clean_captions(  # validation
-        mark_captions(captions_val, mark_start, mark_end)
-    )
+    captions_train_marked = mark_captions(captions_train, mark_start, mark_end)  # training
+    captions_val_marked = mark_captions(captions_val, mark_start, mark_end)  # validation
+    tokenizer, vocab_size = create_tokenizer(captions_train_marked)
 
     num_classes = topic_transfer_values_train.shape[1]
 
@@ -208,8 +194,7 @@ def main(args):
         topic_transfer_values_train,
         feature_transfer_values_train,
         captions_train_marked,
-        # tokenizer,
-        word_idx,
+        tokenizer,
         len(captions_train),
         args.batch_size,
         args.max_tokens,
@@ -221,8 +206,7 @@ def main(args):
         topic_transfer_values_val,
         feature_transfer_values_val,
         captions_val_marked,
-        # tokenizer,
-        word_idx,
+        tokenizer,
         len(captions_val),
         args.batch_size,
         args.max_tokens,
@@ -236,8 +220,7 @@ def main(args):
         num_classes,
         args.state_size,
         args.dropout,
-        # tokenizer.word_index,
-        word_idx,
+        tokenizer.word_index,
         args.glove,
         mark_start,
         mark_end,

@@ -10,16 +10,6 @@ Describing an image efficiently requires extracting as much information from it 
 - NLTK
 - OpenCV
 
-## Model Architecture
-
-### Topic Model
-
-![topic-model](images/topic_model_architecture.png)
-
-### Caption Model
-
-![caption-model](images/caption_model_architecture.png)
-
 ## Model Training and Evaluation
 
 ### Installing Requirements

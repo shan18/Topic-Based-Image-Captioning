@@ -1,5 +1,7 @@
 # Topic-Based-Image-Captioning
 
+Describing an image efficiently requires extracting as much information from it as possible. Apart from detecting the presence of objects in the image, their respective purpose intending the topic of the image is another vital information which can be incorporated with the model to improve the efficiency of the caption generation system. The sole aim is to put extra thrust on the context of the image imitating human approach. The model follows encoder-decoder framework with topic input. The method is compared with some of the state-of-the-art models based on the result obtained from MSCOCO 2017 dataset. BLEU, CIDEr, ROGUE-L, METEOR scores are used to measure the efficacy of the model which shows improvement in performance of the caption generation process.
+
 ## Core Dependencies
 
 - Python 3.6
@@ -67,9 +69,8 @@ Evaluation scores are generated using the code provided [here](https://github.co
 | BLEU-3  | 0.353 |
 | BLEU-4  | 0.252 |
 | CIDEr   | 0.822 |
-| ROUGE_L | 0.498 |
+| ROUGE-L | 0.498 |
 | METEOR  | 0.232 |
-| SPICE   | 0.159 |
 
 ### Examples
 

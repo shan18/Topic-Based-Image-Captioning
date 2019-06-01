@@ -88,3 +88,10 @@ Evaluation scores are generated using the code provided [here](https://github.co
 
 ![example-1](images/1.jpg)
 ![example-2](images/2.jpg)
+
+## Detailed Description
+
+For more information about the model, refer to the following links:
+
+- [Poster](https://drive.google.com/file/d/1odJeqj5EItknM5pVNxITA254OAXWix3c/view?usp=sharing)
+- [Thesis](https://drive.google.com/open?id=1yfnOZlLSTUN7miDXo1PWGst3VEa-qxxn)

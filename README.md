@@ -6,7 +6,19 @@ Describing an image efficiently requires extracting as much information from it 
 
 - Python 3.6
 - Tensorflow
+- Numpy
 - NLTK
+- OpenCV
+
+## Model Architecture
+
+### Topic Model
+
+![topic-model](images/topic_model_architecture.png)
+
+### Caption Model
+
+![caption-model](images/caption_model_architecture.png)
 
 ## Model Training and Evaluation
 
@@ -74,12 +86,5 @@ Evaluation scores are generated using the code provided [here](https://github.co
 
 ### Examples
 
-<img src="images/1.jpg" height="350" />
-<img src="images/6.jpg" height="250" />
-<img src="images/7.jpg" height="250" />
-<img src="images/5.jpg" height="250" />
-<img src="images/8.jpg" height="250" />
-<img src="images/4.jpg" height="250" />
-<img src="images/2.jpg" height="250" />
-<img src="images/3.jpg" height="250" />
-<img src="images/9.jpg" height="250" />
+![example-1](images/1.jpg)
+![example-2](images/2.jpg)

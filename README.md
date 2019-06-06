@@ -58,7 +58,10 @@ Evaluation scores are generated using the code provided [here](https://github.co
 4. Create a **new virtual environment in python 2.7** and activate it.
 5. Install requirements  
    `$ pip install -r evaluation/requirements.txt`
-6. Run the code in the notebook _generate_evaluation_scores.ipynb_ to obtain the evaluation scores.
+6. Install java  
+    `$ sudo apt install default-jre`  
+    `$ sudo apt install default-jdk`
+7. Run the code in the notebook _generate_evaluation_scores.ipynb_ to obtain the evaluation scores.
 
 ## Results
 

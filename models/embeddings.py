@@ -1,27 +1,37 @@
+import os
 import numpy as np
+import pickle
 from tensorflow.keras.layers import Embedding
 
 
-def create_word_vec_map(glove_file, mark_start, mark_end):
+def create_word_vec_map(glove_file, mark_start, mark_end, word_vec_dir):
     print('Creating word to vec map...')
-    with open(glove_file, 'r') as f:
-        words = set()
-        word_to_vec_map = {}
-        for line in f:
-            line = line.strip().split()
-            curr_word = line[0]
-            words.add(curr_word)
-            word_to_vec_map[curr_word] = np.array(line[1:], dtype=np.float32)
 
-    size = word_to_vec_map['unk'].shape
-    word_to_vec_map[mark_start.strip()] = np.random.uniform(low=-1.0, high=1.0, size=size)
-    word_to_vec_map[mark_end.strip()] = np.random.uniform(low=-1.0, high=1.0, size=size)
+    word_vec_path = os.path.join(word_vec_dir, 'word_vec.pkl')
+    if not os.path.exists(word_vec_path):
+        with open(glove_file, 'r') as f:
+            words = set()
+            word_to_vec_map = {}
+            for line in f:
+                line = line.strip().split()
+                curr_word = line[0]
+                words.add(curr_word)
+                word_to_vec_map[curr_word] = np.array(line[1:], dtype=np.float32)
+        size = word_to_vec_map['unk'].shape
+        word_to_vec_map[mark_start.strip()] = np.random.uniform(low=-1.0, high=1.0, size=size)
+        word_to_vec_map[mark_end.strip()] = np.random.uniform(low=-1.0, high=1.0, size=size)
+        with open(word_vec_path, mode='wb') as file:  # save in a file
+            pickle.dump(word_to_vec_map, file)
+    else:
+        with open(word_vec_path, mode='rb') as file:
+            word_to_vec_map = pickle.load(file)
+
     print('Done!')
 
     return word_to_vec_map
 
 
-def create_embedding_layer(word_to_index, glove_file, mark_start, mark_end, num_words):
+def create_embedding_layer(word_to_index, glove_file, mark_start, mark_end, num_words, word_vec_dir):
     """ Create a Keras Embedding() layer and load in pre-trained GloVe 100-dimensional vectors
         @params:
         :word_to_index -- dictionary containing the each word mapped to its index
@@ -33,7 +43,7 @@ def create_embedding_layer(word_to_index, glove_file, mark_start, mark_end, num_
     """
 
     # Create word_vec map
-    word_to_vec_map = create_word_vec_map(glove_file, mark_start, mark_end)
+    word_to_vec_map = create_word_vec_map(glove_file, mark_start, mark_end, word_vec_dir)
     
     vocabulary_length = num_words + 1  # adding 1 to fit Keras embedding (requirement)
     embedding_dimensions = word_to_vec_map['unk'].shape[0]  # define dimensionality of GloVe word vectors (= 300)

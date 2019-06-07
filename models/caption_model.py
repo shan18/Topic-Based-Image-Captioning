@@ -15,7 +15,7 @@ def load_pre_trained_image_model(weights_path, input_shape, num_classes):
 
 def create_model(
     image_model_weights, feature_input_shape, num_topics, state_size, dropout,
-    word_idx, glove_file, mark_start, mark_end, vocab_size, max_tokens=16
+    word_idx, glove_file, word_vec_dir, mark_start, mark_end, vocab_size, max_tokens=16
 ):
     # Load pre-trained image model
     topic_model, feature_model = load_pre_trained_image_model(image_model_weights, feature_input_shape, num_topics)
@@ -25,7 +25,7 @@ def create_model(
 
     # Encode Captions
     topic_input, caption_input, caption_model_output = create_caption_encoder(
-        topic_model, word_idx, glove_file, mark_start, mark_end, state_size, dropout, vocab_size, max_tokens
+        topic_model, word_idx, glove_file, word_vec_dir, mark_start, mark_end, state_size, dropout, vocab_size, max_tokens
     )
     
     # merge encoders and create the decoder

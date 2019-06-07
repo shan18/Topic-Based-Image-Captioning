@@ -251,6 +251,7 @@ def main(args):
         args.dropout,
         tokenizer.word_index,
         args.glove,
+        args.data,
         mark_start,
         mark_end,
         vocab_size,

@@ -16,7 +16,7 @@ def create_image_encoder(feature_model, state_size, dropout):
 
 
 def create_caption_encoder(
-    topic_model, word_idx, glove_file, mark_start, mark_end, state_size, dropout, vocab_size, max_tokens
+    topic_model, word_idx, glove_file, word_vec_dir, mark_start, mark_end, state_size, dropout, vocab_size, max_tokens
 ):
     """ Encode Captions """
 
@@ -25,7 +25,7 @@ def create_caption_encoder(
         shape=K.int_shape(topic_model.output)[1:], name='topic_input'
     )
     caption_input = Input(shape=(max_tokens,), name='caption_input')
-    caption_embedding = create_embedding_layer(word_idx, glove_file, mark_start, mark_end, vocab_size)
+    caption_embedding = create_embedding_layer(word_idx, glove_file, mark_start, mark_end, vocab_size, word_vec_dir)
     caption_lstm = LSTM(state_size, name='caption_lstm')
 
     # connect layers

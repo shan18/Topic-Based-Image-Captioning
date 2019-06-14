@@ -140,7 +140,7 @@ def calculate_steps_per_epoch(captions_list, batch_size):
 
 def train(model, generator_train, generator_val, captions_train, captions_val, args):
     # define callbacks
-    path_checkpoint = 'weights/cp-{epoch:02d}-{val_loss:.2f}.hdf5'
+    path_checkpoint = os.path.join(args.weights, 'cp-{epoch:02d}-{val_loss:.2f}.hdf5')
     callback_checkpoint = ModelCheckpoint(
         filepath=path_checkpoint,
         monitor='val_loss',
@@ -148,7 +148,7 @@ def train(model, generator_train, generator_val, captions_train, captions_val, a
         save_best_only=True
     )
     callback_tensorboard = TensorBoard(
-        log_dir='./weights/caption-logs/',
+        log_dir=os.path.join(args.weights, 'caption-logs'),
         histogram_freq=0,
         write_graph=True
     )
@@ -157,16 +157,45 @@ def train(model, generator_train, generator_val, captions_train, captions_val, a
     callbacks = [callback_checkpoint, callback_tensorboard, callback_early_stop, callback_reduce_lr]
 
     # train model
-    model.fit_generator(
-        generator=generator_train,
-        steps_per_epoch=calculate_steps_per_epoch(captions_train, args.batch_size),
-        epochs=args.epochs,
-        callbacks=callbacks,
-        validation_data=generator_val,
-        validation_steps=calculate_steps_per_epoch(captions_val, args.batch_size)
+    try:
+        model.fit_generator(
+            generator=generator_train,
+            steps_per_epoch=calculate_steps_per_epoch(captions_train, args.batch_size),
+            epochs=args.epochs,
+            callbacks=callbacks,
+            validation_data=generator_val,
+            validation_steps=calculate_steps_per_epoch(captions_val, args.batch_size)
+        )
+        print('\n\nModel training finished.')
+    except KeyboardInterrupt:
+        print('\n\nModel Training Interrupted.')
+    
+    return model
+
+
+def save_model(model, weights_dir):
+    """ Save the trained model with the best possible weights """
+
+    # extract the filename of the weights with the lowest possible
+    # validation loss value encountered during training
+    weights_list = []
+    for content in os.listdir(weights_dir):
+        if content.startswith('cp-'):
+            content_split = os.path.splitext(content)[0].split('-')
+            loss = float(content_split[-1][1:])
+            epoch = int(content_split[1])
+            weights_list.append((content, loss, epoch))
+    
+    best_weights = os.path.join(
+        weights_dir,
+        sorted(weights_list, key=lambda x: (x[1], x[2]))[0][0]
     )
 
-    print('\n\nModel training finished.')
+    # load the model with the best weights and save it to a file
+    print('\n\nUsing weights file', best_weights, 'to save the model...')
+    model.load_weights(best_weights)
+    model.save(os.path.join(weights_dir, 'caption_model.h5'))
+    print('\nModel saved to', os.path.join(weights_dir, 'caption_model.h5'))
 
 
 def main(args):
@@ -229,7 +258,7 @@ def main(args):
     )
 
     # train the model
-    train(
+    model = train(
         model,
         generator_train,
         generator_val,
@@ -237,6 +266,9 @@ def main(args):
         captions_val_marked,
         args
     )
+
+    # save the model with the best weights
+    save_model(model, args.weights)
 
 
 if __name__ == '__main__':
@@ -250,6 +282,11 @@ if __name__ == '__main__':
         '--raw',
         default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dataset', 'coco_raw.pickle'),
         help='Path to the simplified raw coco file'
+    )
+    parser.add_argument(
+        '--weights',
+        default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'weights'),
+        help='Directory in which to save the weights.'
     )
     parser.add_argument(
         '--glove',

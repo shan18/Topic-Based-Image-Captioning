@@ -140,7 +140,7 @@ def calculate_steps_per_epoch(captions_list, batch_size):
 
 def train(model, generator_train, generator_val, captions_train, captions_val, args):
     # define callbacks
-    path_checkpoint = os.path.join(args.weights, 'cp-{epoch:02d}-{val_loss:.2f}.hdf5')
+    path_checkpoint = os.path.join(args.weights, 'cp-{epoch:02d}-v{val_loss:.2f}.hdf5')
     callback_checkpoint = ModelCheckpoint(
         filepath=path_checkpoint,
         monitor='val_loss',
@@ -216,6 +216,15 @@ def main(args):
     captions_val_marked = mark_captions(captions_val, mark_start, mark_end)  # validation
     tokenizer, vocab_size = create_tokenizer(captions_train_marked)
 
+    # save the word_idx and idx_word dictionaries in a file
+    # this will be required during evaluation
+    word_idx_path = os.path.join(args.data, 'word_idx.pkl')
+    idx_word_path = os.path.join(args.data, 'idx_word.pkl')
+    with open(word_idx_path, mode='wb') as f:
+        pickle.dump(tokenizer.word_index, f)
+    with open(idx_word_path, mode='wb') as f:
+        pickle.dump(tokenizer.index_word, f)
+
     num_classes = topic_transfer_values_train.shape[1]
 
     # training-dataset generator
@@ -251,7 +260,6 @@ def main(args):
         args.dropout,
         tokenizer.word_index,
         args.glove,
-        args.data,
         mark_start,
         mark_end,
         vocab_size,

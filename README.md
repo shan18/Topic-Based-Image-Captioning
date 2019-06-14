@@ -10,7 +10,7 @@ Describing an image efficiently requires extracting as much information from it 
 - NLTK
 - OpenCV
 
-## Model Training and Evaluation
+## Model Training
 
 ### Installing Requirements
 
@@ -42,13 +42,17 @@ Describing an image efficiently requires extracting as much information from it 
 2. Train the caption model
    `$ python caption_model_train.py --image_weights <path to the weights of the topic model>`
 
+## Model Evaluation
+
+If you want to directly evaluate without training then the **model along with trained weights** can be downloaded from [here](https://drive.google.com/open?id=17oBLYAbHOvN_F1iT0giUEDtprcnt1nA2).
+
 ### Generate Predictions
 
 Generate model predictions  
-`$ python evaluation/caption_model_predictions.py --image_weights <path to the weights of the topic model> --model_weights <path to the weights of the caption model>`  
+`$ python evaluation/caption_model_predictions.py --model <path to the trained model>`  
 The file generated after executing the above script is used for generation of evaluation scores below.
 
-### Evaluation
+### Generate Scores
 
 Evaluation scores are generated using the code provided [here](https://github.com/tylin/coco-caption).
 

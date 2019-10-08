@@ -88,28 +88,39 @@ def batch_generator(
     """
 
     # Infinite loop.
+    dataset_idx = 0
+    caption_idx = 0
+    dataset_range = len(captions_list)
     while True:
         # Get a list of random indices for images in the dataset.
-        indices = np.random.randint(num_images, size=batch_size)
+        # indices = np.random.randint(num_images, size=batch_size)
         
         # For a batch of the randomly chosen images there are
         # at least 5 captions describing the contents of the image.
         # Select one of those captions at random
         topic_values, feature_values = [], []
         input_captions, output_captions = [], []
-        for idx in indices:
+        for batch_count in range(batch_size):
+            if dataset_idx == dataset_range:
+                dataset_idx = 0
+                caption_idx += 1
+                if caption_idx >= 5:
+                    caption_idx = 0
+
             topic_value, feature_value, input_caption, output_caption = create_sequences(
                 tokenizer,
                 max_length,
-                topic_transfer_values[idx],
-                feature_transfer_values[idx],
-                np.random.choice(captions_list[idx]),
+                topic_transfer_values[dataset_idx],
+                feature_transfer_values[dataset_idx],
+                captions_list[dataset_idx][caption_idx],
                 vocab_size
             )
             topic_values.extend(topic_value)
             feature_values.extend(feature_value)
             input_captions.extend(input_caption)
             output_captions.extend(output_caption)
+
+            dataset_idx += 1
 
         # Dict for the input-data. Because we have
         # several inputs, we use a named dict to
@@ -133,7 +144,8 @@ def calculate_steps_per_epoch(captions_list, batch_size):
     num_captions = [len(captions) for captions in captions_list]
     
     # Total number of captions
-    total_num_captions = np.sum(num_captions)
+    # total_num_captions = np.sum(num_captions)
+    total_num_captions = len(captions_list) * 5
     
     return int(total_num_captions / batch_size)
 

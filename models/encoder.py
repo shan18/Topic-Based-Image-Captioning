@@ -1,6 +1,6 @@
 import numpy as np
 from tensorflow.keras import backend as K
-from tensorflow.keras.layers import Input, Dense, LSTM, Reshape, Dropout
+from tensorflow.keras.layers import Input, Dense, CuDNNLSTM, Reshape, Dropout
 
 from models.embeddings import create_embedding_layer
 
@@ -26,11 +26,11 @@ def create_caption_encoder(
     )
     caption_input = Input(shape=(max_tokens,), name='caption_input')
     caption_embedding = create_embedding_layer(word_idx, glove_file, mark_start, mark_end, vocab_size)
-    caption_lstm = LSTM(state_size, name='caption_lstm')
+    caption_lstm = CuDNNLSTM(state_size, name='caption_lstm')
 
     # connect layers
     topic_input_reshaped = Reshape(target_shape=(K.int_shape(topic_input)[1:] + (1,)))(topic_input)
-    _, initial_state_h0, initial_state_c0 = LSTM(
+    _, initial_state_h0, initial_state_c0 = CuDNNLSTM(
         state_size, return_state=True, name='topic_lstm'
     )(topic_input_reshaped)
     topic_lstm_states = [initial_state_h0, initial_state_c0]

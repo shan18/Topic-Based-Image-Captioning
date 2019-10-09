@@ -1,24 +1,16 @@
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Dense, Add
 
-from models.inception_v3 import load_inception_v3
-from models.topic_model import load_topic_model
 from models.encoder import create_image_encoder, create_caption_encoder
-
-
-def load_pre_trained_image_model(weights_path, input_shape, num_classes):
-    topic_model = load_topic_model(input_shape, num_classes, weights_path)
-    feature_model = load_inception_v3()
-    print('Done.\n')
-    return topic_model, feature_model
+from models.utils import load_pre_trained_image_model
 
 
 def create_model(
-    image_model_weights, feature_input_shape, num_topics, state_size, dropout,
+    image_model_weights, state_size, dropout,
     word_idx, glove_file, mark_start, mark_end, vocab_size, max_tokens=16
 ):
     # Load pre-trained image model
-    topic_model, feature_model = load_pre_trained_image_model(image_model_weights, feature_input_shape, num_topics)
+    topic_model, feature_model = load_pre_trained_image_model(image_model_weights)
 
     # Encode Images
     feature_input, image_model_output = create_image_encoder(feature_model, state_size, dropout)

@@ -1,8 +1,5 @@
-from tensorflow.keras.models import Sequential, Model
+from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Dense, Input
-from tensorflow.keras.optimizers import Adam
-
-from models.inception_v3 import load_inception_v3
 
 
 def create_topic_model(input_shape, output_dim):
@@ -22,19 +19,4 @@ def create_topic_model(input_shape, output_dim):
     # Compile the model
     model.compile(loss='mean_squared_error', optimizer='rmsprop')
 
-    return model
-
-
-def load_topic_model(input_shape, output_dim, weights_path):
-    """ Load topic model with pre-trained weights """
-
-    model = create_topic_model(input_shape, output_dim)
-
-    try:
-        model.load_weights(weights_path)
-        print('Weights loaded.')
-    except Exception as e:
-        print('Error trying to load weights.')
-        print(e)
-        
     return model

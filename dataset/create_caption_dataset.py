@@ -3,6 +3,7 @@ import argparse
 import pickle
 import h5py
 import numpy as np
+
 from tensorflow.keras import backend as K
 
 import sys
@@ -11,42 +12,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils import load_image, print_progress_bar
 from create_topic_dataset import load_split_data
 from models.inception_v3 import load_inception_v3
-from models.topic_model import load_topic_model
-
-
-def load_input_shapes(data_type, data_dir):
-    """ Load the shapes of the input to be given to the caption model. """
-    # Path for the cache-file.
-    feature_cache_path = os.path.join(
-        data_dir, 'inception_features_{}.h5'.format(data_type)
-    )
-    topic_cache_path = os.path.join(
-        data_dir, 'lda_topics_{}.pkl'.format(data_type)
-    )
-
-    if os.path.exists(feature_cache_path) and os.path.exists(topic_cache_path):
-        # Shape of image features
-        feature_file = h5py.File(feature_cache_path, 'r')
-        feature_obj = feature_file['feature_values']
-
-        # Shape of image topics vector
-        with open(topic_cache_path, mode='rb') as file:
-            topic_obj = pickle.load(file)
-    else:
-        sys.exit('processed {} data does not exist.'.format(data_type))
-    
-    feature_shape = feature_obj.shape[1:]
-    topic_shape = topic_obj.shape[1]
-    feature_file.close()
-    return feature_shape, topic_shape
-
-
-def load_pre_trained_model(input_shape, output_dim, weights_path):
-    print('Loading pre-trained models...')
-    topic_model = load_topic_model(input_shape, output_dim, weights_path)
-    feature_model = load_inception_v3()
-    print('Done.\n')
-    return topic_model, feature_model
+from models.utils import load_pre_trained_image_model
 
 
 def process_images(topic_model, feature_model, filenames, args):
@@ -161,11 +127,10 @@ def main(args):
     test_img_ids, test_images, test_captions = test_data
     
     # Load pre-trained image models
-    feature_shape, topic_shape = load_input_shapes('train', args.data)
-    print('\nNum Topics:', topic_shape)
-    topic_model, feature_model = load_pre_trained_model(
-        feature_shape, topic_shape, args.image_weights
+    topic_model, feature_model = load_pre_trained_image_model(
+        args.image_weights
     )
+    print('Num Topics:', K.int_shape(topic_model.output))
 
     # Generate and save dataset
     process_data(  # training data

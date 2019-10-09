@@ -172,8 +172,6 @@ def main(args):
     # Create Model
     model = create_model(
         args.image_weights,
-        feature_transfer_values_train.shape[1:],
-        num_classes,
         args.state_size,
         args.dropout,
         tokenizer.word_index,

@@ -44,7 +44,7 @@ Describing an image efficiently requires extracting as much information from it 
 
 ## Model Evaluation
 
-If you want to directly evaluate without training then the **model along with trained weights** can be downloaded from [here](https://drive.google.com/open?id=17oBLYAbHOvN_F1iT0giUEDtprcnt1nA2).
+If you want to directly evaluate without training then the **model along with trained weights** can be downloaded from [here](https://drive.google.com/open?id=1VADZLqGUOVmvaSJ1g5RIYgOWtRFtu_wL).
 
 ### Generate Predictions
 
@@ -73,12 +73,12 @@ Evaluation scores are generated using the code provided [here](https://github.co
 
 | Metric  | Score |
 | ------- | ----- |
-| BLEU-1  | 0.669 |
-| BLEU-2  | 0.493 |
+| BLEU-1  | 0.672 |
+| BLEU-2  | 0.494 |
 | BLEU-3  | 0.353 |
-| BLEU-4  | 0.252 |
-| CIDEr   | 0.822 |
-| ROUGE-L | 0.498 |
+| BLEU-4  | 0.255 |
+| CIDEr   | 0.824 |
+| ROUGE-L | 0.499 |
 | METEOR  | 0.232 |
 
 ### Examples

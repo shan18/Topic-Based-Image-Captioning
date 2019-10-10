@@ -67,6 +67,11 @@ Evaluation scores are generated using the code provided [here](https://github.co
     `$ sudo apt install default-jdk`
 7. Run the code in the notebook _generate_evaluation_scores.ipynb_ to obtain the evaluation scores.
 
+## One-Shot Inference
+
+To generate predicted caption for a single image  
+`$ python3 evaluation/one_step_inference.py --topic_model <path to trained topic model> --caption_model <path to trained caption model> --image <image path>`
+
 ## Results
 
 ### Scores

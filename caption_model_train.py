@@ -112,8 +112,8 @@ def save_model(model, weights_dir):
     # load the model with the best weights and save it to a file
     print('\n\nUsing weights file', best_weights, 'to save the model...')
     model.load_weights(best_weights)
-    model.save(os.path.join(weights_dir, 'caption_model.h5'))
-    print('\nModel saved to', os.path.join(weights_dir, 'caption_model.h5'))
+    model.save(os.path.join(weights_dir, 'caption_model.hdf5'))
+    print('\nModel saved to', os.path.join(weights_dir, 'caption_model.hdf5'))
 
 
 def main(args):

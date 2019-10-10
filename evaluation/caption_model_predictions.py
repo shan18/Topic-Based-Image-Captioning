@@ -24,10 +24,10 @@ def load_data(data_type, data_dir):
         data_dir, 'images_id_{}.pkl'.format(data_type)
     )
     word_idx_cache_path = os.path.join(
-        data_dir, 'word_idx.pkl'.format(data_type)
+        data_dir, 'word_idx.pkl'
     )
     idx_word_cache_path = os.path.join(
-        data_dir, 'idx_word.pkl'.format(data_type)
+        data_dir, 'idx_word.pkl'
     )
 
     topic_path_exists = os.path.exists(topic_cache_path)

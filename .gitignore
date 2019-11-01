@@ -15,6 +15,7 @@ weights/
 *.h5
 *.pickle
 *.pkl
+*.zip
 !idx_word.pkl
 !word_idx.pkl
 

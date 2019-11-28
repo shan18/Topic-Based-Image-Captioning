@@ -90,3 +90,7 @@ To generate predicted caption for a single image
 
 ![example-1](images/1.jpg)
 ![example-2](images/2.jpg)
+
+## References
+
+Publication link: https://link.springer.com/article/10.1007/s13369-019-04262-2

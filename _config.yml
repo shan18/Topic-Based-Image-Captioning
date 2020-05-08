@@ -1,5 +1,0 @@
-theme: jekyll-theme-cayman
-show_downloads: true
-github:
-  code_url: https://github.com/shan18/Topic-Based-Image-Captioning/archive/v1.1.tar.gz
-  weights_url: https://github.com/shan18/Topic-Based-Image-Captioning/releases/download/v1.1/topic-based-image-captioning-checkpoints.tar.gz

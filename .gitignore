@@ -1,0 +1,33 @@
+# Other files and folders
+resources
+eval_images/
+evaluation/pycocoevalcap/
+evaluation/pycocotools/
+evaluation/get_stanford_models.sh
+evaluation/annotations/*.json
+
+# Large files
+dataset/train2017
+dataset/val2017
+dataset/annotations
+dataset/*.txt
+weights/
+*.h5
+*.pickle
+*.pkl
+*.zip
+!idx_word.pkl
+!word_idx.pkl
+
+# Byte-compiled
+__pycache__/
+*.pyc
+
+# Visual Studio Code
+.vscode
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# PyCharm
+.idea

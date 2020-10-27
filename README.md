@@ -44,7 +44,7 @@ Describing an image efficiently requires extracting as much information from it 
 
 ## Model Evaluation
 
-If you want to directly evaluate without training then the **model along with trained weights** can be downloaded from [here](https://drive.google.com/open?id=1VADZLqGUOVmvaSJ1g5RIYgOWtRFtu_wL).
+If you want to directly evaluate without training then the **model along with trained weights** can be downloaded from the [releases page](https://github.com/shan18/Topic-Based-Image-Captioning/releases/tag/v1.1).
 
 ### Generate Predictions
 
